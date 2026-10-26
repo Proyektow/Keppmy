@@ -1,44 +1,42 @@
 /**
- * Desk Orbit • Clock, Modern Spotify & 3D Autonomous Panda Habitat
+ * Desk Orbit • Clock, Scaled Spotify & Panda 2.5D House Architecture
  */
 
 // ==========================================================
-// 1. NAVEGACIÓN EN PRISMA 3D (3 CARAS: 0°, 120°, 240°)
+// 1. CONTROL DE VISTAS (CARRUSEL SIN ROTURA DE ZOOM)
 // ==========================================================
-let currentFace = 0; // 0 = Reloj, 1 = Spotify, 2 = Panda Room
-const prism = document.getElementById('prism');
+let currentSlide = 0; // 0 = Reloj, 1 = Spotify, 2 = Casa Panda
+const track = document.getElementById('carousel-track');
 const dots = document.querySelectorAll('.dot');
 const glowBg = document.getElementById('ambient-glow');
 
-function updatePrism() {
-  const angle = currentFace * -120;
-  prism.style.transform = `rotateY(${angle}deg)`;
+function updateSlideView() {
+  track.style.transform = `translateX(-${currentSlide * 100}vw)`;
 
   dots.forEach((dot, idx) => {
-    dot.classList.toggle('active', idx === currentFace);
+    dot.classList.toggle('active', idx === currentSlide);
   });
 
-  // Atenuación de resplandor según la cara activa
-  if (currentFace === 0) {
+  if (currentSlide === 0) {
     glowBg.style.opacity = '0.12';
-  } else if (currentFace === 1) {
+  } else if (currentSlide === 1) {
     glowBg.style.opacity = '0.65';
   } else {
-    glowBg.style.opacity = '0.25';
+    glowBg.style.opacity = '0.2';
   }
 }
 
-function rotatePrism(direction) {
-  currentFace = (currentFace + direction + 3) % 3;
-  updatePrism();
+function rotateSlide(direction) {
+  currentSlide = (currentSlide + direction + 3) % 3;
+  updateSlideView();
 }
 
-function goToPage(index) {
-  currentFace = index;
-  updatePrism();
+function goToSlide(index) {
+  currentSlide = index;
+  updateSlideView();
 }
 
-// Swipe táctil horizontal
+// Swipe táctil horizontal fluido
 let startX = 0;
 window.addEventListener('touchstart', (e) => {
   startX = e.touches[0].clientX;
@@ -46,8 +44,8 @@ window.addEventListener('touchstart', (e) => {
 
 window.addEventListener('touchend', (e) => {
   const diffX = e.changedTouches[0].clientX - startX;
-  if (Math.abs(diffX) > 60) {
-    rotatePrism(diffX > 0 ? -1 : 1);
+  if (Math.abs(diffX) > 50) {
+    rotateSlide(diffX > 0 ? -1 : 1);
   }
 });
 
@@ -81,7 +79,7 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // ==========================================================
-// 3. SPOTIFY NOW PLAYING CON BOTONES MODERNOS
+// 3. INTEGRACIÓN SPOTIFY NOW PLAYING
 // ==========================================================
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing';
@@ -92,14 +90,13 @@ let progressInterval = null;
 
 function generateRandomString(length) {
   let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < length; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < length; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
   return text;
 }
 
 async function generateCodeChallenge(verifier) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
+  const data = new TextEncoder().encode(verifier);
   const digest = await window.crypto.subtle.digest('SHA-256', data);
   return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -167,7 +164,7 @@ async function fetchNowPlaying() {
 
     if (res.status === 204 || res.status === 202) {
       document.getElementById('track-name').textContent = "Pausado / Sin música activa";
-      document.getElementById('track-artist').textContent = "Abre Spotify en tu PC o móvil";
+      document.getElementById('track-artist').textContent = "Abre Spotify en tu ordenador o móvil";
       document.getElementById('eq-indicator').style.display = 'none';
       setPlayPauseButton(false);
       return;
@@ -267,59 +264,54 @@ function showAuth() {
 }
 
 // ==========================================================
-// 4. MASCOTA AUTÓNOMA: PANDA 3D & HABITAT
+// 4. SIMULACIÓN DE LA CASA DEL PANDA (VISTA DE PLANO 2.5D)
 // ==========================================================
 const panda = document.getElementById('panda-avatar');
 const bubble = document.getElementById('panda-bubble');
 const stateLabel = document.getElementById('panda-state-label');
 
-// Coordenadas relativas dentro de la habitación
-const ROOM_COORDS = {
-  center: { x: '50%', y: '50%', z: '18px', msg: 'Paseando... 🐾', status: 'Paseando por la sala' },
-  bed:    { x: '24%', y: '32%', z: '25px', msg: 'Zzz... 😴', status: 'Durmiendo la siesta' },
-  desk:   { x: '72%', y: '30%', z: '22px', msg: 'Compilando... 💻', status: 'Programando en el setup' },
-  fridge: { x: '74%', y: '74%', z: '20px', msg: '¡Ñam bambú! 🎋', status: 'Comiendo en la cocina' },
-  bath:   { x: '26%', y: '74%', z: '20px', msg: 'Hora del baño 🚿', status: 'En el aseo' }
+// Coordenadas absolutas en % dentro de la planta de la casa
+const HOUSE_COORDS = {
+  bed:    { x: '24%', y: '28%', msg: 'Zzz... 😴', status: 'Durmiendo en la cama' },
+  desk:   { x: '76%', y: '28%', msg: 'Compilando... 💻', status: 'En el setup gamer' },
+  fridge: { x: '76%', y: '74%', msg: 'Comiendo bambú 🎋', status: 'Almorzando en la cocina' },
+  bath:   { x: '24%', y: '74%', msg: 'Lavándome las patas 🧼', status: 'En el cuarto de baño' },
+  hall:   { x: '50%', y: '50%', msg: 'Explorando... 🐾', status: 'Paseando por el pasillo' }
 };
 
-let currentAction = 'center';
-
-function movePandaTo(actionKey) {
-  const target = ROOM_COORDS[actionKey];
+function movePandaTo(spotKey) {
+  const target = HOUSE_COORDS[spotKey];
   if (!target) return;
 
-  currentAction = actionKey;
   panda.style.left = target.x;
   panda.style.top = target.y;
-  panda.style.transform = `translate(-50%, -50%) translateZ(${target.z})`;
 
   bubble.textContent = target.msg;
   stateLabel.textContent = target.status;
 }
 
-function forcePandaAction(actionKey) {
-  movePandaTo(actionKey);
+function forcePandaAction(spotKey) {
+  movePandaTo(spotKey);
 }
 
-// IA autónoma del Panda: decide cambiar de actividad cada 12-20 segundos
-function runPandaLifeCycle() {
-  const actions = ['center', 'bed', 'desk', 'fridge', 'bath'];
+// Ciclo de vida autónomo: cambia de habitación cada 15 segundos
+function runHouseCycle() {
+  const spots = ['bed', 'desk', 'fridge', 'bath', 'hall'];
   setInterval(() => {
-    // Si es de noche (después de las 23:00), preferencia por dormir
     const hour = new Date().getHours();
+    // Prioridad nocturna para ir a la cama
     if (hour >= 23 || hour < 7) {
-      if (Math.random() > 0.3) {
+      if (Math.random() > 0.25) {
         movePandaTo('bed');
         return;
       }
     }
-
-    const nextAction = actions[Math.floor(Math.random() * actions.length)];
-    movePandaTo(nextAction);
-  }, 16000);
+    const nextSpot = spots[Math.floor(Math.random() * spots.length)];
+    movePandaTo(nextSpot);
+  }, 15000);
 }
 
-runPandaLifeCycle();
+runHouseCycle();
 
 // ==========================================================
 // 5. INICIALIZACIÓN GENERAL & WAKE LOCK
@@ -331,6 +323,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (code) exchangeCodeForToken(code);
   else if (token) initPlayer();
   else showAuth();
+
+  // Posición inicial del panda
+  movePandaTo('hall');
 });
 
 async function keepScreenAwake() {
