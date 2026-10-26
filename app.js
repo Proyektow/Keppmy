@@ -590,3 +590,137 @@ keepScreenAwake();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') keepScreenAwake();
 });
+// ==========================================================
+// CONTROL DE GESTOS EN EL AIRE (AIR GESTURE DETECTOR)
+// ==========================================================
+let airSensorEnabled = false;
+let airStream = null;
+let airInterval = null;
+let previousBrightness = null;
+let handCoverStartTime = null;
+let lastGestureTime = 0;
+
+const airVideo = document.getElementById('air-video');
+const airCanvas = document.getElementById('air-canvas');
+const airCtx = airCanvas.getContext('2d', { willReadFrequently: true });
+const sensorBtn = document.getElementById('wave-sensor-btn');
+const sensorDot = document.getElementById('sensor-active-dot');
+
+async function toggleAirGestureSensor() {
+  if (airSensorEnabled) {
+    stopAirSensor();
+  } else {
+    await startAirSensor();
+  }
+}
+
+async function startAirSensor() {
+  try {
+    airStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'user',
+        width: { ideal: 64 },
+        height: { ideal: 64 }
+      },
+      audio: false
+    });
+
+    airVideo.srcObject = airStream;
+    await airVideo.play();
+
+    airSensorEnabled = true;
+    sensorBtn.classList.add('sensor-on');
+    sensorDot.classList.add('active');
+
+    // Analiza un micro-fotograma cada 75 ms (13 FPS, consumo casi nulo)
+    airInterval = setInterval(processAirFrame, 75);
+
+    if (navigator.vibrate) navigator.vibrate(50);
+  } catch (err) {
+    alert("No se pudo acceder a la cámara frontal para los gestos aéreos: " + err.message);
+    stopAirSensor();
+  }
+}
+
+function stopAirSensor() {
+  airSensorEnabled = false;
+  if (airInterval) clearInterval(airInterval);
+  if (airStream) {
+    airStream.getTracks().forEach(track => track.stop());
+    airStream = null;
+  }
+  sensorBtn.classList.remove('sensor-on');
+  sensorDot.classList.remove('active');
+}
+
+function processAirFrame() {
+  if (!airVideo.videoWidth) return;
+
+  // Dibuja la imagen reducida a 16x16 píxeles para calcular la luz
+  airCtx.drawImage(airVideo, 0, 0, 16, 16);
+  const frame = airCtx.getImageData(0, 0, 16, 16);
+  const data = frame.data;
+
+  let totalLuma = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    // Brillo percibido (fórmula ITU-R BT.601)
+    totalLuma += (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114);
+  }
+  const avgBrightness = totalLuma / (data.length / 4);
+
+  const now = Date.now();
+
+  if (previousBrightness !== null) {
+    const diff = previousBrightness - avgBrightness;
+
+    // Condición: La mano tapa la parte superior del móvil (caída brusca de luz)
+    const isCovered = avgBrightness < 35 || diff > 40;
+
+    if (isCovered) {
+      if (!handCoverStartTime) {
+        handCoverStartTime = now;
+      } else {
+        const coveredDuration = now - handCoverStartTime;
+
+        // Gesto 1: Mano quieta encima por más de 800ms -> Play / Pausa
+        if (coveredDuration > 800 && (now - lastGestureTime > 1500)) {
+          triggerGestureFeedback("play-pause");
+          togglePlayPause();
+          lastGestureTime = now;
+          handCoverStartTime = null; // Reiniciar
+        }
+      }
+    } else {
+      // Si se destapa después de un paso rápido (entre 120ms y 600ms)
+      if (handCoverStartTime) {
+        const coveredDuration = now - handCoverStartTime;
+        if (coveredDuration >= 100 && coveredDuration <= 600 && (now - lastGestureTime > 1200)) {
+          // Gesto 2: Paso rápido de la mano (Swipe aéreo) -> Siguiente canción
+          triggerGestureFeedback("next");
+          controlPlayback('next');
+          lastGestureTime = now;
+        }
+        handCoverStartTime = null;
+      }
+    }
+  }
+
+  previousBrightness = avgBrightness;
+}
+
+function triggerGestureFeedback(type) {
+  // Vibración táctil
+  if (navigator.vibrate) {
+    if (type === "play-pause") navigator.vibrate([40, 60, 40]);
+    else navigator.vibrate(60);
+  }
+
+  // Destello en pantalla
+  const viewport = document.querySelector('.stage-viewport');
+  if (viewport) {
+    viewport.classList.remove('gesture-pulse');
+    void viewport.offsetWidth; // Forzar reflow
+    viewport.classList.add('gesture-pulse');
+  }
+}
+
