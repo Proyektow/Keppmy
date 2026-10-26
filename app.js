@@ -1,40 +1,44 @@
 /**
- * Desk Orbit • Clock & Now Playing (Cylinder 3D Navigation)
+ * Desk Orbit • Clock, Modern Spotify & 3D Autonomous Panda Habitat
  */
 
-// 1. Navegación Cilindro / Libro
-let currentPage = 0; // 0 = Reloj, 1 = Spotify
-const cylinder = document.getElementById('cylinder');
+// ==========================================================
+// 1. NAVEGACIÓN EN PRISMA 3D (3 CARAS: 0°, 120°, 240°)
+// ==========================================================
+let currentFace = 0; // 0 = Reloj, 1 = Spotify, 2 = Panda Room
+const prism = document.getElementById('prism');
 const dots = document.querySelectorAll('.dot');
 const glowBg = document.getElementById('ambient-glow');
 
-function updateCylinder() {
-  const angle = currentPage * -180;
-  cylinder.style.transform = `rotateY(${angle}deg)`;
+function updatePrism() {
+  const angle = currentFace * -120;
+  prism.style.transform = `rotateY(${angle}deg)`;
 
   dots.forEach((dot, idx) => {
-    dot.classList.toggle('active', idx === currentPage);
+    dot.classList.toggle('active', idx === currentFace);
   });
 
-  // Si estamos en reloj, el fondo vuelve al modo deep black para descansar
-  if (currentPage === 0) {
-    glowBg.style.opacity = '0.15';
-  } else {
+  // Atenuación de resplandor según la cara activa
+  if (currentFace === 0) {
+    glowBg.style.opacity = '0.12';
+  } else if (currentFace === 1) {
     glowBg.style.opacity = '0.65';
+  } else {
+    glowBg.style.opacity = '0.25';
   }
 }
 
-function rotateBook(direction) {
-  currentPage = (currentPage + direction + 2) % 2;
-  updateCylinder();
+function rotatePrism(direction) {
+  currentFace = (currentFace + direction + 3) % 3;
+  updatePrism();
 }
 
 function goToPage(index) {
-  currentPage = index;
-  updateCylinder();
+  currentFace = index;
+  updatePrism();
 }
 
-// Soporte Swipe táctil (arrastrar con el dedo horizontalmente)
+// Swipe táctil horizontal
 let startX = 0;
 window.addEventListener('touchstart', (e) => {
   startX = e.touches[0].clientX;
@@ -43,11 +47,10 @@ window.addEventListener('touchstart', (e) => {
 window.addEventListener('touchend', (e) => {
   const diffX = e.changedTouches[0].clientX - startX;
   if (Math.abs(diffX) > 60) {
-    rotateBook(diffX > 0 ? -1 : 1);
+    rotatePrism(diffX > 0 ? -1 : 1);
   }
 });
 
-// 2. Pantalla completa real sin barra de estado
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(() => {});
@@ -59,7 +62,9 @@ function toggleFullscreen() {
   }
 }
 
-// 3. Reloj en tiempo real
+// ==========================================================
+// 2. RELOJ EN TIEMPO REAL
+// ==========================================================
 function updateClock() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2, '0');
@@ -75,7 +80,9 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// 4. Integración Spotify PKCE
+// ==========================================================
+// 3. SPOTIFY NOW PLAYING CON BOTONES MODERNOS
+// ==========================================================
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing';
 let isPlaying = false;
@@ -102,13 +109,9 @@ async function loginSpotify() {
   const clientId = document.getElementById('client-id-input').value.trim();
   if (!clientId) return alert("Introduce tu Spotify Client ID.");
 
-  // Muestra la URL exacta que exige Spotify
-  alert("Copia esta URL exacta:\n" + REDIRECT_URI);
-
   localStorage.setItem('spotify_client_id', clientId);
   const verifier = generateRandomString(128);
   const challenge = await generateCodeChallenge(verifier);
-
   localStorage.setItem('code_verifier', verifier);
 
   const params = new URLSearchParams({
@@ -122,6 +125,7 @@ async function loginSpotify() {
 
   window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
+
 async function exchangeCodeForToken(code) {
   const clientId = localStorage.getItem('spotify_client_id');
   const verifier = localStorage.getItem('code_verifier');
@@ -129,7 +133,7 @@ async function exchangeCodeForToken(code) {
   const params = new URLSearchParams({
     client_id: clientId,
     grant_type: 'authorization_code',
-    code: code,
+    code,
     redirect_uri: REDIRECT_URI,
     code_verifier: verifier
   });
@@ -163,8 +167,9 @@ async function fetchNowPlaying() {
 
     if (res.status === 204 || res.status === 202) {
       document.getElementById('track-name').textContent = "Pausado / Sin música activa";
-      document.getElementById('track-artist').textContent = "Abre Spotify en tu ordenador o móvil";
+      document.getElementById('track-artist').textContent = "Abre Spotify en tu PC o móvil";
       document.getElementById('eq-indicator').style.display = 'none';
+      setPlayPauseButton(false);
       return;
     }
 
@@ -197,7 +202,7 @@ function renderTrack(data) {
     glowBg.style.backgroundImage = `url('${artUrl}')`;
   }
 
-  document.getElementById('btn-play-pause').textContent = isPlaying ? '⏸️' : '▶️';
+  setPlayPauseButton(isPlaying);
   document.getElementById('eq-indicator').style.display = isPlaying ? 'flex' : 'none';
 
   if (data.device) {
@@ -206,6 +211,11 @@ function renderTrack(data) {
 
   document.getElementById('time-tot').textContent = formatMs(curDuration);
   updateProgressBar();
+}
+
+function setPlayPauseButton(playing) {
+  document.getElementById('play-svg').style.display = playing ? 'none' : 'block';
+  document.getElementById('pause-svg').style.display = playing ? 'block' : 'none';
 }
 
 function updateProgressBar() {
@@ -256,6 +266,64 @@ function showAuth() {
   if (savedId) document.getElementById('client-id-input').value = savedId;
 }
 
+// ==========================================================
+// 4. MASCOTA AUTÓNOMA: PANDA 3D & HABITAT
+// ==========================================================
+const panda = document.getElementById('panda-avatar');
+const bubble = document.getElementById('panda-bubble');
+const stateLabel = document.getElementById('panda-state-label');
+
+// Coordenadas relativas dentro de la habitación
+const ROOM_COORDS = {
+  center: { x: '50%', y: '50%', z: '18px', msg: 'Paseando... 🐾', status: 'Paseando por la sala' },
+  bed:    { x: '24%', y: '32%', z: '25px', msg: 'Zzz... 😴', status: 'Durmiendo la siesta' },
+  desk:   { x: '72%', y: '30%', z: '22px', msg: 'Compilando... 💻', status: 'Programando en el setup' },
+  fridge: { x: '74%', y: '74%', z: '20px', msg: '¡Ñam bambú! 🎋', status: 'Comiendo en la cocina' },
+  bath:   { x: '26%', y: '74%', z: '20px', msg: 'Hora del baño 🚿', status: 'En el aseo' }
+};
+
+let currentAction = 'center';
+
+function movePandaTo(actionKey) {
+  const target = ROOM_COORDS[actionKey];
+  if (!target) return;
+
+  currentAction = actionKey;
+  panda.style.left = target.x;
+  panda.style.top = target.y;
+  panda.style.transform = `translate(-50%, -50%) translateZ(${target.z})`;
+
+  bubble.textContent = target.msg;
+  stateLabel.textContent = target.status;
+}
+
+function forcePandaAction(actionKey) {
+  movePandaTo(actionKey);
+}
+
+// IA autónoma del Panda: decide cambiar de actividad cada 12-20 segundos
+function runPandaLifeCycle() {
+  const actions = ['center', 'bed', 'desk', 'fridge', 'bath'];
+  setInterval(() => {
+    // Si es de noche (después de las 23:00), preferencia por dormir
+    const hour = new Date().getHours();
+    if (hour >= 23 || hour < 7) {
+      if (Math.random() > 0.3) {
+        movePandaTo('bed');
+        return;
+      }
+    }
+
+    const nextAction = actions[Math.floor(Math.random() * actions.length)];
+    movePandaTo(nextAction);
+  }, 16000);
+}
+
+runPandaLifeCycle();
+
+// ==========================================================
+// 5. INICIALIZACIÓN GENERAL & WAKE LOCK
+// ==========================================================
 window.addEventListener('DOMContentLoaded', () => {
   const code = new URLSearchParams(window.location.search).get('code');
   const token = localStorage.getItem('spotify_access_token');
@@ -265,7 +333,6 @@ window.addEventListener('DOMContentLoaded', () => {
   else showAuth();
 });
 
-// Evitar que la pantalla se apague en el soporte
 async function keepScreenAwake() {
   try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch(e){}
 }
