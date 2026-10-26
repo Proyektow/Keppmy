@@ -10,8 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="Garraioa">
   <title>Gaua & Eguna • Reloj & Asistente</title>
 
-  <!-- PWA Manifest incrustado directamente para habilitar instalación en Android -->
+  <!-- PWA Manifest incrustado -->
   <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Garraioa%20Gaua%20eta%20Eguna%22%2C%22short_name%22%3A%22Garraioa%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2306080d%22%2C%22theme_color%22%3A%22%2306080d%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20100%20100'%3E%3Ctext%20y%3D'.9em'%20font-size%3D'90'%3E%F0%9F%97%BA%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+
+  <!-- JSZip para descomprimir ical.zip directamente en el móvil -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
   <style>
     :root {
@@ -28,7 +31,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
-    /* Corrección de altura para Chrome Android: 100dvh + safe area */
     html, body {
       height: 100%;
       background-color: var(--bg);
@@ -198,7 +200,7 @@
       color: var(--text);
     }
 
-    /* 4. BARRA INFERIOR (Con botón de instalación integrado) */
+    /* 4. BARRA INFERIOR */
     .bottom-toolbar {
       width: 100%;
       max-width: 440px;
@@ -411,11 +413,12 @@
         <button class="btn-close" onclick="closeCalendarModal()">&times;</button>
       </div>
 
+      <!-- Selector de Archivo ZIP / ICS descargado en el móvil -->
       <div class="sync-config-box">
-        <label>URL Secreta iCal de Google Calendar (.ics):</label>
-        <div style="display: flex; gap: 4px;">
-          <input type="text" id="ical-url-input" placeholder="https://calendar.google.com/.../basic.ics" class="input-event" style="flex: 1; font-size: 0.7rem;">
-          <button class="btn-save-event" style="padding: 4px 8px; font-size: 0.7rem;" onclick="saveAndSyncIcal()">Cargar</button>
+        <label>Importar calendario (archivo ical.zip o .ics):</label>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="file" id="file-calendar-input" accept=".zip,.ics" class="input-event" style="flex: 1; font-size: 0.72rem; padding: 6px;">
+          <button class="btn-save-event" style="padding: 6px 10px; font-size: 0.72rem;" onclick="handleCalendarFileUpload()">Cargar</button>
         </div>
       </div>
 
@@ -433,7 +436,7 @@
   </div>
 
   <script>
-    // 1. Registro de Service Worker para habilitar instalación PWA
+    // 1. Registro PWA
     let deferredPrompt = null;
     const installBtn = document.getElementById('btn-install');
 
@@ -453,7 +456,7 @@
           deferredPrompt = null;
         });
       } else {
-        alert("Para instalar: pulsa los 3 puntos de Chrome arriba a la derecha y selecciona 'Añadir a pantalla de inicio' o 'Instalar aplicación'.");
+        alert("Pulsa los 3 puntos de Chrome (arriba a la derecha) y selecciona 'Añadir a pantalla de inicio' o 'Instalar aplicación'.");
       }
     }
 
@@ -483,7 +486,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 3. Meteorología en Vivo
+    // 3. Meteorología en Vivo (Bilbao)
     const LAT = 43.263;
     const LON = -2.935;
     let cachedWeather = null;
@@ -554,7 +557,7 @@
       }
     }
 
-    // 4. Calendario y Google Calendar
+    // 4. Calendario y Manejo de ical.zip / .ics
     let myEvents = JSON.parse(localStorage.getItem('garraioa_events') || '[]');
 
     function saveEvents() {
@@ -574,7 +577,7 @@
       container.innerHTML = '';
 
       if (myEvents.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:18px;">No tienes eventos programados.</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:18px;">No tienes eventos programados. Sube tu ical.zip o añade uno.</div>';
         return;
       }
 
@@ -588,7 +591,7 @@
         item.innerHTML = `
           <div class="event-info">
             <h4>${ev.title}</h4>
-            <p>📅 ${ev.date} a las ${ev.time} ${ev.source === 'google' ? '• GCal' : ''}</p>
+            <p>📅 ${ev.date} a las ${ev.time} ${ev.source === 'google' ? '• Google' : ''}</p>
           </div>
           <div class="event-actions">
             <a href="${gcalUrl}" target="_blank" class="btn-gcal">GCal ↗</a>
@@ -620,20 +623,46 @@
       saveEvents();
     }
 
-    async function saveAndSyncIcal() {
-      const url = document.getElementById('ical-url-input').value.trim();
-      if (!url) return;
+    // Procesar archivo ZIP o ICS
+    async function handleCalendarFileUpload() {
+      const fileInput = document.getElementById('file-calendar-input');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Selecciona primero el archivo ical.zip desde tu móvil.");
+        return;
+      }
 
-      localStorage.setItem('garraioa_ical_url', url);
+      const file = fileInput.files[0];
 
       try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const res = await fetch(proxyUrl);
-        const icsText = await res.text();
-        parseIcsEvents(icsText);
-        speak("Calendario de Google sincronizado con éxito.", "✅");
+        if (file.name.endsWith('.zip')) {
+          const zip = await JSZip.loadAsync(file);
+          let foundIcs = false;
+
+          for (const filename of Object.keys(zip.files)) {
+            if (filename.endsWith('.ics')) {
+              foundIcs = true;
+              const icsContent = await zip.files[filename].async('string');
+              parseIcsEvents(icsContent);
+            }
+          }
+
+          if (foundIcs) {
+            speak("Calendarios de Google importados correctamente.", "✅");
+          } else {
+            alert("El archivo ZIP no contiene ningún archivo .ics.");
+          }
+        } else if (file.name.endsWith('.ics')) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            parseIcsEvents(e.target.result);
+            speak("Calendario importado correctamente.", "✅");
+          };
+          reader.readAsText(file);
+        } else {
+          alert("Por favor selecciona un archivo .zip o .ics.");
+        }
       } catch (err) {
-        speak("No se pudo descargar el archivo iCal.", "⚠️");
+        alert("Error al leer el archivo: " + err.message);
       }
     }
 
@@ -666,8 +695,6 @@
     }
 
     function openCalendarModal() {
-      const savedIcal = localStorage.getItem('garraioa_ical_url');
-      if (savedIcal) document.getElementById('ical-url-input').value = savedIcal;
       renderEvents();
       document.getElementById('calendar-modal').classList.add('open');
     }
@@ -690,7 +717,7 @@
       }
     }
 
-    // 5. Entrada por Voz
+    // 5. Entrada por Voz al pulsar la hora
     let recognition = null;
     let isListening = false;
 
@@ -756,7 +783,7 @@
       } else if (text.includes('hoy') || text.includes('tiempo') || text.includes('llueve') || text.includes('temperatura')) {
         askWeather('hoy');
       } else {
-        speak(`He oído: "${text}". Puedes pedir el tiempo o decir "Apunta reunión mañana a las cinco".`, "🤔");
+        speak(`He oído: "${text}". Puedes pedirme el tiempo o decir "Apunta reunión mañana a las cinco".`, "🤔");
       }
     }
 
