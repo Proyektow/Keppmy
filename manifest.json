@@ -1,7 +1,8 @@
 {
-  "name": "Desk Orbit",
+  "name": "Desk Orbit • Clock & Music",
   "short_name": "DeskOrbit",
-  "start_url": "./index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#030407",
