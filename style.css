@@ -1,370 +1,335 @@
 :root {
-  --bg: #06080d;
-  --card-bg: rgba(18, 22, 33, 0.85);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --text: #f1f5f9;
-  --text-muted: #798599;
+  --bg-deep: #030407;
   --accent: #38bdf8;
-  --yellow: #fbbf24;
-  --red-mic: #ef4444;
-  --google-blue: #4285f4;
+  --spotify: #1db954;
+  --text-primary: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.55);
+  --glass-surface: rgba(14, 18, 28, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 
 html, body {
+  width: 100%;
   height: 100%;
-  background-color: var(--bg);
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
 }
 
-body {
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
-  overflow-y: auto;
+/* Fondo dinámico reactivo */
+.ambient-glow {
+  position: fixed;
+  inset: -40px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(65px) brightness(0.25) saturate(1.7);
+  z-index: 0;
+  transition: background-image 0.9s ease, opacity 0.8s ease;
+  opacity: 0.6;
 }
 
-.app-viewport {
-  flex: 1;
+/* Botón flotante para ocultar barras del sistema */
+.fullscreen-trigger {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-/* 1. SECCIÓN SUPERIOR: METEOROLOGÍA */
-.weather-hero {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(14px);
-  border-radius: 16px;
-  padding: 10px 16px;
+  justify-content: center;
   cursor: pointer;
-  flex-shrink: 0;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s, opacity 0.3s;
 }
+.fullscreen-trigger svg { width: 18px; height: 18px; }
+.fullscreen-trigger:active { background: rgba(255, 255, 255, 0.18); }
 
-.weather-left { display: flex; align-items: center; gap: 10px; }
-.weather-icon-big { font-size: 2.2rem; }
-.weather-temp-giant {
-  font-size: 2.4rem;
-  font-weight: 900;
-  line-height: 1;
-  color: #fff;
-}
-
-.weather-right { text-align: right; }
-.weather-app-badge {
-  display: inline-flex;
+/* VISTA 3D TIPO LIBRO CILÍNDRICO */
+.stage-viewport {
+  position: relative;
+  z-index: 10;
+  width: 100vw;
+  height: 100dvh;
+  perspective: 1200px;
+  display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+  justify-content: center;
 }
-.weather-app-badge svg { width: 13px; height: 13px; }
-.weather-desc-lead { font-size: 0.8rem; color: var(--text); font-weight: 600; margin-top: 1px; }
-.weather-submetrics { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
 
-/* 2. RELOJ CENTRAL */
-.clock-container {
+.carousel-cylinder {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cylinder-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backface-visibility: hidden;
+  transition: opacity 0.5s ease;
+}
+
+/* =======================================================
+   PÁGINA 1: RELOJ GIGANTE
+   ======================================================= */
+.clock-display {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  cursor: pointer;
-  border-radius: 20px;
-  padding: 8px 16px;
-  margin: 10px 0;
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
 }
 
-.clock-container:active { transform: scale(0.98); }
-
-.time-digits {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", monospace;
-  font-size: clamp(4.6rem, 18vw, 6.6rem);
+.time-main {
+  font-family: monospace, -apple-system, sans-serif;
+  font-size: clamp(5.5rem, 21vw, 11rem);
   font-weight: 900;
-  line-height: 0.92;
-  letter-spacing: -3px;
+  line-height: 0.9;
+  letter-spacing: -4px;
   color: #fff;
-  text-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
-  transition: all 0.3s ease;
+  text-shadow: 0 0 35px rgba(255, 255, 255, 0.09);
+  display: flex;
+  align-items: baseline;
 }
 
-.seconds-mark {
-  font-size: 1.4rem;
-  font-weight: 700;
+.seconds-sub {
+  font-size: clamp(1.4rem, 4vw, 2.5rem);
   color: var(--accent);
-  margin-left: 2px;
+  margin-left: 8px;
+  font-weight: 700;
 }
 
-.date-label {
-  font-size: 1rem;
+.date-full {
+  font-size: clamp(1rem, 3.2vw, 1.8rem);
   font-weight: 500;
   color: var(--text-muted);
-  margin-top: 6px;
+  margin-top: 18px;
   text-transform: capitalize;
+  letter-spacing: 0.5px;
 }
 
-.clock-hint {
-  font-size: 0.65rem;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-top: 4px;
-  opacity: 0.75;
+/* =======================================================
+   PÁGINA 2: NOW PLAYING SPOTIFY
+   ======================================================= */
+.page-music {
+  transform: rotateY(180deg);
 }
 
-.clock-container.listening .time-digits {
-  color: var(--red-mic);
-  text-shadow: 0 0 35px rgba(239, 68, 68, 0.75);
-  animation: pulse-clock 1.2s infinite;
-}
-
-.clock-container.listening .clock-hint {
-  color: var(--red-mic);
-  opacity: 1;
-  font-weight: 700;
-}
-
-@keyframes pulse-clock {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
-}
-
-/* 3. RESPUESTA ASISTENTE */
-.assistant-bubble {
+.music-auth-card {
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  padding: 28px;
+  border-radius: 24px;
+  text-align: center;
+  max-width: 360px;
   width: 100%;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 9px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  flex-shrink: 0;
 }
+.auth-icon { font-size: 2.8rem; margin-bottom: 8px; }
+.music-auth-card h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 6px; }
+.music-auth-card p { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.35; }
 
-.assistant-icon-mini {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.assistant-icon-mini svg { width: 20px; height: 20px; }
-.assistant-bubble-text { flex: 1; font-size: 0.82rem; font-weight: 500; line-height: 1.3; color: var(--text); }
-
-/* 4. BARRA INFERIOR */
-.bottom-toolbar {
+.dark-input {
   width: 100%;
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.btn-compact {
-  flex: 1;
-  background: #11141e;
-  border: 1px solid var(--card-border);
-  color: var(--text-muted);
-  padding: 9px 4px;
-  border-radius: 10px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  transition: background 0.15s;
-}
-
-.btn-compact:active {
-  background: #1c2233;
+  background: #090c14;
+  border: 1px solid var(--glass-border);
   color: #fff;
-  border-color: var(--accent);
-}
-
-.btn-install-pwa {
-  border-color: rgba(56, 189, 248, 0.4);
-  color: var(--accent);
-}
-
-/* 5. MODAL CALENDARIO */
-.modal-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 100;
-  align-items: center;
-  justify-content: center;
-  padding: 14px;
-}
-.modal-backdrop.open { display: flex; }
-
-.modal-box {
-  background: #0f131d;
-  border: 1px solid var(--card-border);
-  border-radius: 18px;
-  width: 100%;
-  max-width: 420px;
-  max-height: 85dvh;
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-}
-
-.modal-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--card-border);
-  margin-bottom: 10px;
-}
-
-.modal-title { font-size: 1rem; font-weight: 800; color: #fff; }
-.btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
-
-.sync-config-box {
-  background: #161c28;
-  border: 1px solid var(--card-border);
+  padding: 10px 14px;
   border-radius: 10px;
-  padding: 8px 10px;
-  margin-bottom: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.sync-config-box label { font-size: 0.7rem; color: var(--accent); font-weight: 700; }
-.file-row { display: flex; gap: 6px; align-items: center; }
-
-.events-list {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.event-item {
-  background: #161c28;
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  padding: 9px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.event-info h4 { font-size: 0.85rem; font-weight: 700; color: #fff; }
-.event-info p { font-size: 0.7rem; color: var(--accent); margin-top: 2px; }
-.event-actions { display: flex; align-items: center; gap: 6px; }
-
-.btn-gcal {
-  background: rgba(66, 133, 244, 0.15);
-  border: 1px solid var(--google-blue);
-  color: #93c5fd;
-  border-radius: 6px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 4px 6px;
-  text-decoration: none;
-}
-.btn-del-event { background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 2px; }
-
-.quick-add-form {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-top: 1px solid var(--card-border);
-  padding-top: 10px;
-}
-.input-event {
-  background: #1a2232;
-  border: 1px solid var(--card-border);
-  color: #fff;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
   outline: none;
 }
-.form-datetime-row { display: flex; gap: 6px; }
-.flex-1 { flex: 1; }
-.w-100 { width: 100px; }
-
-.btn-save-event {
-  background: #0284c7;
-  color: #fff;
+.btn-spotify {
+  width: 100%;
+  background: var(--spotify);
+  color: #000;
+  font-weight: 800;
+  padding: 11px;
+  border-radius: 10px;
   border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.8rem;
   cursor: pointer;
 }
 
-/* ==========================================================
-   ADAPTACIÓN HORIZONTAL (LANDSCAPE - RELOJ DE MESA GIGANTE)
-   ========================================================== */
-@media (orientation: landscape) and (max-height: 520px) {
-  .app-viewport {
-    max-width: 100%;
-    height: 100dvh;
-    display: grid;
-    grid-template-columns: 1fr 280px;
-    grid-template-rows: 1fr auto;
-    gap: 12px;
-    padding: 10px 16px;
-  }
+.music-player-grid {
+  width: 100%;
+  max-width: 850px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
 
-  .clock-container {
-    grid-column: 1 / 2;
-    grid-row: 1 / 3;
-    margin: 0;
-    justify-content: center;
-  }
+.art-frame {
+  position: relative;
+  width: clamp(200px, 45vw, 290px);
+  aspect-ratio: 1 / 1;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 16px 45px rgba(0,0,0,0.7), 0 0 0 1px var(--glass-border);
+  flex-shrink: 0;
+}
+.art-frame img { width: 100%; height: 100%; object-fit: cover; }
 
-  .time-digits {
-    font-size: clamp(6rem, 23vh, 8.5rem);
-  }
+.eq-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 16px;
+}
+.eq-badge span {
+  width: 3px;
+  background: var(--spotify);
+  border-radius: 2px;
+  animation: eqBounce 0.8s infinite alternate ease-in-out;
+}
+.eq-badge span:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.eq-badge span:nth-child(2) { height: 100%; animation-delay: 0.3s; }
+.eq-badge span:nth-child(3) { height: 60%; animation-delay: 0.2s; }
+@keyframes eqBounce { from { height: 20%; } to { height: 100%; } }
 
-  .weather-hero {
-    grid-column: 2 / 3;
-    grid-row: 1 / 2;
-    padding: 8px 12px;
-  }
-  .weather-temp-giant { font-size: 1.8rem; }
-  .weather-icon-big { font-size: 1.6rem; }
+.track-details {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
 
-  .assistant-bubble {
-    display: none; /* Se oculta para dar prioridad a la visibilidad total */
-  }
+.track-text { text-align: center; width: 100%; }
+.track-text h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track-text h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--spotify);
+  margin-top: 3px;
+}
+.track-text p { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
-  .bottom-toolbar {
-    grid-column: 2 / 3;
-    grid-row: 2 / 3;
+.progress-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.progress-wrap span { font-size: 0.72rem; font-family: monospace; color: var(--text-muted); width: 32px; text-align: center; }
+.progress-bar {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill { width: 0%; height: 100%; background: #fff; border-radius: 4px; transition: width 0.25s linear; }
+
+.track-actions { display: flex; align-items: center; gap: 20px; }
+.ctrl-btn { background: none; border: none; font-size: 1.6rem; cursor: pointer; }
+.btn-play {
+  font-size: 2.2rem;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--glass-border);
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.device-tag {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+}
+
+/* =======================================================
+   NAVEGACIÓN TIPO LIBRO
+   ======================================================= */
+.book-nav {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: rgba(14, 18, 28, 0.45);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  padding: 6px 14px;
+  border-radius: 24px;
+}
+
+.nav-arrow {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.page-dots { display: flex; gap: 8px; }
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.dot.active {
+  background: var(--accent);
+  width: 22px;
+  border-radius: 6px;
+}
+
+/* =======================================================
+   MODO LANDSCAPE (PANTALLA DE ESCRITORIO GIRADA)
+   ======================================================= */
+@media (orientation: landscape) {
+  .music-player-grid {
+    flex-direction: row;
+    gap: 40px;
   }
+  .track-details {
+    align-items: flex-start;
+  }
+  .track-text { text-align: left; }
+  .track-actions { align-self: center; }
 }
