@@ -1,5 +1,5 @@
-const CACHE_NAME = 'aura-cache-v1';
-const ASSETS = [
+const CACHE_NAME = 'deskorbit-cache-v1';
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
@@ -7,19 +7,25 @@ const ASSETS = [
   './manifest.json'
 ];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+// Instalación y guardado inicial en caché
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
+// Limpieza de cachés antiguas si actualizas código
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
         })
       );
     })
@@ -27,8 +33,16 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((res) => res || fetch(e.request))
+// Interceptor de red: responde de caché si existe, si no va a internet
+self.addEventListener('fetch', (event) => {
+  // Ignorar peticiones a la API de Spotify o servicios externos
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request);
+    })
   );
 });
