@@ -1,11 +1,15 @@
 :root {
   --bg-deep: #030407;
   --accent: #38bdf8;
-  --spotify: #1db954;
+  --spotify: #1ed760;
+  --spotify-dark: #121212;
+  --spotify-gray: #b3b3b3;
   --text-primary: #ffffff;
   --text-muted: rgba(255, 255, 255, 0.55);
   --glass-surface: rgba(14, 18, 28, 0.65);
   --glass-border: rgba(255, 255, 255, 0.08);
+  --room-floor: #161b26;
+  --room-border: #232b3d;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -19,19 +23,18 @@ html, body {
   overflow: hidden;
 }
 
-/* Fondo dinámico reactivo */
+/* Fondo ambiental reactivo */
 .ambient-glow {
   position: fixed;
   inset: -40px;
   background-size: cover;
   background-position: center;
-  filter: blur(65px) brightness(0.25) saturate(1.7);
+  filter: blur(65px) brightness(0.24) saturate(1.8);
   z-index: 0;
   transition: background-image 0.9s ease, opacity 0.8s ease;
-  opacity: 0.6;
+  opacity: 0.15;
 }
 
-/* Botón flotante para ocultar barras del sistema */
 .fullscreen-trigger {
   position: fixed;
   top: 14px;
@@ -48,102 +51,99 @@ html, body {
   justify-content: center;
   cursor: pointer;
   backdrop-filter: blur(8px);
-  transition: background 0.2s, opacity 0.3s;
 }
 .fullscreen-trigger svg { width: 18px; height: 18px; }
-.fullscreen-trigger:active { background: rgba(255, 255, 255, 0.18); }
 
-/* VISTA 3D TIPO LIBRO CILÍNDRICO */
+/* VIEWPORT Y PRISMA 3D */
 .stage-viewport {
   position: relative;
   z-index: 10;
   width: 100vw;
   height: 100dvh;
-  perspective: 1200px;
+  perspective: 1400px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.carousel-cylinder {
+.carousel-prism {
   width: 100%;
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.cylinder-page {
+.prism-face {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   backface-visibility: hidden;
-  transition: opacity 0.5s ease;
+}
+
+/* Configuración de las 3 caras del prisma con radio de desplazamiento */
+.face-clock {
+  transform: rotateY(0deg) translateZ(360px);
+}
+.face-music {
+  transform: rotateY(120deg) translateZ(360px);
+}
+.face-panda {
+  transform: rotateY(240deg) translateZ(360px);
 }
 
 /* =======================================================
-   PÁGINA 1: RELOJ GIGANTE
+   CARA 1: RELOJ ULTRA-CLEAN
    ======================================================= */
 .clock-display {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
 }
-
 .time-main {
   font-family: monospace, -apple-system, sans-serif;
-  font-size: clamp(5.5rem, 21vw, 11rem);
+  font-size: clamp(5.5rem, 20vw, 10.5rem);
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -4px;
   color: #fff;
-  text-shadow: 0 0 35px rgba(255, 255, 255, 0.09);
   display: flex;
   align-items: baseline;
 }
-
 .seconds-sub {
   font-size: clamp(1.4rem, 4vw, 2.5rem);
   color: var(--accent);
   margin-left: 8px;
   font-weight: 700;
 }
-
 .date-full {
-  font-size: clamp(1rem, 3.2vw, 1.8rem);
+  font-size: clamp(1rem, 3.2vw, 1.7rem);
   font-weight: 500;
   color: var(--text-muted);
   margin-top: 18px;
   text-transform: capitalize;
-  letter-spacing: 0.5px;
 }
 
 /* =======================================================
-   PÁGINA 2: NOW PLAYING SPOTIFY
+   CARA 2: SPOTIFY & BOTONES MODERNOS
    ======================================================= */
-.page-music {
-  transform: rotateY(180deg);
-}
-
 .music-auth-card {
   background: var(--glass-surface);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(20px);
-  padding: 28px;
+  padding: 26px;
   border-radius: 24px;
   text-align: center;
   max-width: 360px;
   width: 100%;
 }
-.auth-icon { font-size: 2.8rem; margin-bottom: 8px; }
+.auth-icon { margin-bottom: 8px; }
 .music-auth-card h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 6px; }
-.music-auth-card p { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.35; }
-
+.music-auth-card p { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 18px; }
 .dark-input {
   width: 100%;
   background: #090c14;
@@ -168,30 +168,28 @@ html, body {
 
 .music-player-grid {
   width: 100%;
-  max-width: 850px;
+  max-width: 820px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 20px;
+  gap: 18px;
 }
-
 .art-frame {
   position: relative;
-  width: clamp(200px, 45vw, 290px);
+  width: clamp(180px, 38vw, 260px);
   aspect-ratio: 1 / 1;
-  border-radius: 20px;
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 16px 45px rgba(0,0,0,0.7), 0 0 0 1px var(--glass-border);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.7), 0 0 0 1px var(--glass-border);
   flex-shrink: 0;
 }
 .art-frame img { width: 100%; height: 100%; object-fit: cover; }
 
 .eq-badge {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background: rgba(0,0,0,0.55);
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.65);
   backdrop-filter: blur(8px);
   padding: 4px 6px;
   border-radius: 6px;
@@ -219,52 +217,50 @@ html, body {
   align-items: center;
   gap: 12px;
 }
-
 .track-text { text-align: center; width: 100%; }
-.track-text h2 {
-  font-size: 1.35rem;
-  font-weight: 800;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.track-text h3 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--spotify);
-  margin-top: 3px;
-}
+.track-text h2 { font-size: 1.35rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-text h3 { font-size: 0.95rem; font-weight: 600; color: var(--spotify); margin-top: 3px; }
 .track-text p { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 
-.progress-wrap {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.progress-wrap { width: 100%; display: flex; align-items: center; gap: 8px; }
 .progress-wrap span { font-size: 0.72rem; font-family: monospace; color: var(--text-muted); width: 32px; text-align: center; }
-.progress-bar {
-  flex: 1;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  overflow: hidden;
-}
+.progress-bar { flex: 1; height: 5px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; overflow: hidden; }
 .progress-fill { width: 0%; height: 100%; background: #fff; border-radius: 4px; transition: width 0.25s linear; }
 
-.track-actions { display: flex; align-items: center; gap: 20px; }
-.ctrl-btn { background: none; border: none; font-size: 1.6rem; cursor: pointer; }
-.btn-play {
-  font-size: 2.2rem;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid var(--glass-border);
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
+/* NUEVA BOTONERA ESTILO SPOTIFY */
+.track-actions-modern {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 24px;
 }
+.btn-ctrl-modern {
+  background: none;
+  border: none;
+  color: var(--spotify-gray);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s, color 0.15s;
+}
+.btn-ctrl-modern svg { width: 26px; height: 26px; }
+.btn-ctrl-modern:active { transform: scale(0.88); color: #fff; }
+
+.btn-play-white {
+  background: #ffffff;
+  color: #000000;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  transition: transform 0.15s ease, background 0.15s;
+}
+.btn-play-white svg { width: 28px; height: 28px; }
+.btn-play-white:hover { transform: scale(1.06); background: var(--spotify); color: #000; }
+.btn-play-white:active { transform: scale(0.94); }
 
 .device-tag {
   font-size: 0.72rem;
@@ -276,11 +272,235 @@ html, body {
 }
 
 /* =======================================================
-   NAVEGACIÓN TIPO LIBRO
+   CARA 3: PANDA ROOM (MINI-CASA 3D ISOMÉTRICA)
+   ======================================================= */
+.panda-room-container {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.panda-status-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 14px;
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+}
+.panda-name { font-size: 0.82rem; font-weight: 800; color: #fff; }
+.panda-mood-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(56, 189, 248, 0.12);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+/* Habitación en perspectiva 3D */
+.room-isometric-view {
+  width: 100%;
+  height: clamp(230px, 48vh, 320px);
+  perspective: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.room-stage {
+  position: relative;
+  width: 320px;
+  height: 240px;
+  background: linear-gradient(135deg, #182030, #0f1420);
+  border: 2px solid var(--room-border);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.5);
+  transform: rotateX(42deg) rotateZ(-24deg);
+  transform-style: preserve-3d;
+}
+
+/* Muebles y Zonas */
+.furniture {
+  position: absolute;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+}
+.furn-tag {
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Cama */
+.bed {
+  top: 15px;
+  left: 15px;
+  width: 70px;
+  height: 90px;
+  background: #334155;
+  border: 1px solid #475569;
+}
+.pillow { width: 50px; height: 18px; background: #e2e8f0; border-radius: 4px; }
+.blanket { width: 62px; height: 50px; background: #0284c7; border-radius: 4px; margin-top: 6px; }
+
+/* Escritorio */
+.desk {
+  top: 15px;
+  right: 15px;
+  width: 85px;
+  height: 55px;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+}
+.pc-screen {
+  width: 44px;
+  height: 24px;
+  background: #000;
+  border: 1px solid #22c55e;
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+/* Nevera / Cocina */
+.fridge {
+  bottom: 20px;
+  right: 20px;
+  width: 55px;
+  height: 60px;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  color: #111;
+  font-size: 1.2rem;
+}
+
+/* Baño */
+.bath {
+  bottom: 20px;
+  left: 20px;
+  width: 60px;
+  height: 60px;
+  background: #0ea5e9;
+  border: 1px solid #38bdf8;
+  font-size: 1.2rem;
+}
+
+/* PERSONAJE PANDA 3D */
+.panda-character {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 48px;
+  transform: translate(-50%, -50%) translateZ(18px);
+  transition: all 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+/* Bocadillo de pensamiento */
+.speech-bubble {
+  position: absolute;
+  top: -28px;
+  background: #ffffff;
+  color: #000000;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  animation: floatBubble 2s infinite ease-in-out;
+}
+@keyframes floatBubble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+.panda-ears { position: relative; width: 34px; height: 10px; display: flex; justify-content: space-between; }
+.panda-ears .ear { width: 10px; height: 10px; background: #000; border-radius: 50%; }
+
+.panda-head {
+  position: relative;
+  width: 32px;
+  height: 24px;
+  background: #fff;
+  border-radius: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.panda-eye-patch {
+  position: absolute;
+  width: 9px;
+  height: 11px;
+  background: #000;
+  border-radius: 50%;
+  top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.panda-eye-patch.left { left: 5px; transform: rotate(15deg); }
+.panda-eye-patch.right { right: 5px; transform: rotate(-15deg); }
+.pupil { width: 3px; height: 3px; background: #fff; border-radius: 50%; }
+.panda-nose { position: absolute; bottom: 3px; width: 5px; height: 3px; background: #000; border-radius: 3px; }
+
+.panda-body {
+  position: relative;
+  width: 28px;
+  height: 20px;
+  background: #000;
+  border-radius: 10px;
+  margin-top: -3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.panda-body .belly { width: 14px; height: 14px; background: #fff; border-radius: 50%; }
+
+.panda-legs { width: 26px; display: flex; justify-content: space-between; margin-top: -2px; }
+.panda-legs .leg { width: 8px; height: 8px; background: #000; border-radius: 4px; }
+
+/* Botones de acción manual */
+.panda-actions-bar {
+  display: flex;
+  gap: 8px;
+}
+.btn-panda-act {
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-panda-act:active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* =======================================================
+   NAVEGACIÓN DEL PRISMA
    ======================================================= */
 .book-nav {
   position: fixed;
-  bottom: 16px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
@@ -293,17 +513,7 @@ html, body {
   padding: 6px 14px;
   border-radius: 24px;
 }
-
-.nav-arrow {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.4rem;
-  cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-}
-
+.nav-arrow { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; padding: 0 4px; }
 .page-dots { display: flex; gap: 8px; }
 .dot {
   width: 8px;
@@ -319,17 +529,21 @@ html, body {
   border-radius: 6px;
 }
 
-/* =======================================================
-   MODO LANDSCAPE (PANTALLA DE ESCRITORIO GIRADA)
-   ======================================================= */
+/* MODO HORIZONTAL (LANDSCAPE) */
 @media (orientation: landscape) {
   .music-player-grid {
     flex-direction: row;
     gap: 40px;
   }
-  .track-details {
-    align-items: flex-start;
-  }
+  .track-details { text-align: left; align-items: flex-start; }
   .track-text { text-align: left; }
-  .track-actions { align-self: center; }
+  .track-actions-modern { align-self: center; }
+
+  .panda-room-container {
+    max-width: 650px;
+    height: 100%;
+  }
+  .room-isometric-view {
+    height: 220px;
+  }
 }
