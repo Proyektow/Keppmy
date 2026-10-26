@@ -289,7 +289,16 @@ function requestNotificationPermission() {
 // ==========================================================
 // 4. SPOTIFY NOW PLAYING (REAL PKCE + MODO DEMO)
 // ==========================================================
-const REDIRECT_URI = window.location.origin + window.location.pathname;
+// Limpia cualquier parámetro residual y asegura barra final normalizada
+const getCleanRedirectUri = () => {
+  let url = window.location.origin + window.location.pathname;
+  if (!url.endsWith('/') && !url.endsWith('.html')) {
+    url += '/';
+  }
+  return url;
+};
+
+const REDIRECT_URI = getCleanRedirectUri();
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing';
 let isPlaying = false;
 let curDuration = 180000;
@@ -314,6 +323,12 @@ async function generateCodeChallenge(verifier) {
 async function loginSpotify() {
   const clientId = document.getElementById('client-id-input').value.trim();
   if (!clientId) return alert("Introduce tu Spotify Client ID.");
+
+  // ESTA ALERTA TE DICE LA URL EXACTA:
+  alert("COPIA ESTA URL EXACTA:\n" + REDIRECT_URI);
+
+  localStorage.setItem('spotify_client_id', clientId);
+  // ... resto de la función igual
 
   localStorage.setItem('spotify_client_id', clientId);
   const verifier = generateRandomString(128);
