@@ -7,7 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Desk Orbit • Clock & Now Playing</title>
+  <title>Desk Orbit • Clock, Music & Panda 3D</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
 </head>
@@ -16,19 +16,19 @@
   <!-- Fondo ambiental reactivo -->
   <div class="ambient-glow" id="ambient-glow"></div>
 
-  <!-- Botón flotante para forzar pantalla completa inmersiva -->
-  <button class="fullscreen-trigger" id="fs-btn" onclick="toggleFullscreen()" title="Pantalla completa">
+  <!-- Botón Pantalla Completa Inmersiva -->
+  <button class="fullscreen-trigger" onclick="toggleFullscreen()" title="Pantalla completa">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
     </svg>
   </button>
 
-  <!-- Contenedor 3D tipo Libro / Cilindro -->
+  <!-- Escenario 3D (Prisma de 3 caras) -->
   <div class="stage-viewport">
-    <div class="carousel-cylinder" id="cylinder">
+    <div class="carousel-prism" id="prism">
 
-      <!-- PÁGINA 1: RELOJ ULTRA-CLEAN -->
-      <section class="cylinder-page page-clock active">
+      <!-- ================= PÁGINA 1: RELOJ ================= -->
+      <section class="prism-face face-clock">
         <div class="clock-display">
           <div class="time-main">
             <span id="hours-mins">--:--</span>
@@ -38,18 +38,22 @@
         </div>
       </section>
 
-      <!-- PÁGINA 2: NOW PLAYING SPOTIFY -->
-      <section class="cylinder-page page-music">
+      <!-- ================= PÁGINA 2: SPOTIFY NOW PLAYING ================= -->
+      <section class="prism-face face-music">
         <!-- Sub-vista A: Autorización -->
         <div class="music-auth-card" id="music-auth">
-          <div class="auth-icon">🎵</div>
+          <div class="auth-icon">
+            <svg viewBox="0 0 24 24" fill="#1db954" width="48" height="48">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.495 17.303c-.215.353-.676.467-1.03.25-2.822-1.724-6.375-2.115-10.56-1.158-.403.092-.81-.16-.902-.563-.092-.404.16-.811.563-.903 4.582-1.047 8.513-.604 11.677 1.344.354.217.468.677.252 1.03zm1.467-3.26c-.27.44-.848.58-1.288.31-3.23-1.986-8.155-2.56-11.976-1.4-1.498-.5-.815.148-1.314-.352-.15-.499.148-1.002.648-1.152 4.372-1.326 9.794-.69 13.43 1.545.44.27.58.848.31 1.289zm.126-3.41c-3.873-2.3-10.264-2.513-13.98-1.383-.594.18-1.222-.156-1.403-.75-.18-.594.156-1.223.75-1.404 4.267-1.295 11.318-1.047 15.787 1.606.534.317.708 1.01.39 1.545-.317.534-1.01.708-1.544.39z"/>
+            </svg>
+          </div>
           <h3>Spotify Now Playing</h3>
           <p>Conéctate para ver lo que suena en tu PC o móvil.</p>
           <input type="text" id="client-id-input" placeholder="Client ID de Spotify" class="dark-input">
-          <button class="btn-spotify" onclick="loginSpotify()">Conectar</button>
+          <button class="btn-spotify" onclick="loginSpotify()">Conectar cuenta</button>
         </div>
 
-        <!-- Sub-vista B: Reproductor Vivo -->
+        <!-- Sub-vista B: Reproductor Activo con Botones Spotify Modernos -->
         <div class="music-player-grid" id="music-player" style="display: none;">
           <div class="art-frame">
             <img id="track-art" src="" alt="Album Art">
@@ -60,12 +64,12 @@
 
           <div class="track-details">
             <div class="track-text">
-              <h2 id="track-name">Sin reproducción activa</h2>
-              <h3 id="track-artist">Abre Spotify</h3>
+              <h2 id="track-name">Sin reproducción</h2>
+              <h3 id="track-artist">Abre Spotify en tu PC</h3>
               <p id="track-album">--</p>
             </div>
 
-            <!-- Progreso -->
+            <!-- Progreso de la pista -->
             <div class="progress-wrap">
               <span id="time-cur">0:00</span>
               <div class="progress-bar">
@@ -74,11 +78,31 @@
               <span id="time-tot">0:00</span>
             </div>
 
-            <!-- Botones táctiles -->
-            <div class="track-actions">
-              <button class="ctrl-btn" onclick="controlPlayback('previous')">⏮️</button>
-              <button class="ctrl-btn btn-play" id="btn-play-pause" onclick="togglePlayPause()">▶️</button>
-              <button class="ctrl-btn" onclick="controlPlayback('next')">⏭️</button>
+            <!-- BOTONERA MODERNA SPOTIFY (SVGs limpios y redondos) -->
+            <div class="track-actions-modern">
+              <!-- Anterior -->
+              <button class="btn-ctrl-modern" onclick="controlPlayback('previous')" title="Anterior">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                </svg>
+              </button>
+
+              <!-- Play / Pausa Principal Blanco -->
+              <button class="btn-ctrl-modern btn-play-white" id="btn-play-pause" onclick="togglePlayPause()" title="Play / Pausa">
+                <svg id="play-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                <svg id="pause-svg" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+              </button>
+
+              <!-- Siguiente -->
+              <button class="btn-ctrl-modern" onclick="controlPlayback('next')" title="Siguiente">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                </svg>
+              </button>
             </div>
 
             <div class="device-tag" id="device-label">🔊 Buscando dispositivo...</div>
@@ -86,17 +110,95 @@
         </div>
       </section>
 
+      <!-- ================= PÁGINA 3: MINI-CASA 3D DEL PANDA ================= -->
+      <section class="prism-face face-panda">
+        <div class="panda-room-container">
+          <!-- Cabecera de Estado -->
+          <div class="panda-status-bar">
+            <span class="panda-name">🎋 Panda Habitat</span>
+            <span class="panda-mood-badge" id="panda-state-label">Explorando la habitación</span>
+          </div>
+
+          <!-- Habitación Isométrica 3D -->
+          <div class="room-isometric-view">
+            <div class="room-stage" id="room-floor">
+              
+              <!-- Zona Cama / Dormitorio -->
+              <div class="furniture bed" id="zone-bed" title="Cama">
+                <div class="pillow"></div>
+                <div class="blanket"></div>
+                <span class="furn-tag">Cama</span>
+              </div>
+
+              <!-- Zona Setup Gamer / Escritorio -->
+              <div class="furniture desk" id="zone-desk" title="Escritorio">
+                <div class="pc-screen">
+                  <div class="code-stream"></div>
+                </div>
+                <div class="chair"></div>
+                <span class="furn-tag">Desk</span>
+              </div>
+
+              <!-- Zona Cocina / Bambú -->
+              <div class="furniture fridge" id="zone-fridge" title="Nevera de Bambú">
+                <div class="fridge-door">🎋</div>
+                <span class="furn-tag">Cocina</span>
+              </div>
+
+              <!-- Zona Baño -->
+              <div class="furniture bath" id="zone-bath" title="Aseo">
+                <div class="toilet">🚿</div>
+                <span class="furn-tag">Baño</span>
+              </div>
+
+              <!-- EL PANDA 3D (Animado autónomamente) -->
+              <div class="panda-character" id="panda-avatar">
+                <div class="speech-bubble" id="panda-bubble">¡Hola! 🐾</div>
+                <div class="panda-ears">
+                  <span class="ear left"></span>
+                  <span class="ear right"></span>
+                </div>
+                <div class="panda-head">
+                  <div class="panda-eye-patch left"><div class="pupil"></div></div>
+                  <div class="panda-eye-patch right"><div class="pupil"></div></div>
+                  <div class="panda-nose"></div>
+                </div>
+                <div class="panda-body">
+                  <div class="arm left"></div>
+                  <div class="arm right"></div>
+                  <div class="belly"></div>
+                </div>
+                <div class="panda-legs">
+                  <div class="leg left"></div>
+                  <div class="leg right"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Barra de Interacción rápida con el Panda -->
+          <div class="panda-actions-bar">
+            <button class="btn-panda-act" onclick="forcePandaAction('bed')">🛏️ Dormir</button>
+            <button class="btn-panda-act" onclick="forcePandaAction('fridge')">🎋 Comer</button>
+            <button class="btn-panda-act" onclick="forcePandaAction('desk')">💻 Programar</button>
+            <button class="btn-panda-act" onclick="forcePandaAction('bath')">🚿 Baño</button>
+          </div>
+        </div>
+      </section>
+
     </div>
   </div>
 
-  <!-- Controles de navegación de libro (flechas e indicadores de página) -->
+  <!-- Navegación del Prisma (3 caras) -->
   <nav class="book-nav">
-    <button class="nav-arrow" onclick="rotateBook(-1)">‹</button>
+    <button class="nav-arrow" onclick="rotatePrism(-1)">‹</button>
     <div class="page-dots">
       <span class="dot active" onclick="goToPage(0)"></span>
       <span class="dot" onclick="goToPage(1)"></span>
+      <span class="dot" onclick="goToPage(2)"></span>
     </div>
-    <button class="nav-arrow" onclick="rotateBook(1)">›</button>
+    <button class="nav-arrow" onclick="rotatePrism(1)">›</button>
   </nav>
 
   <script src="app.js"></script>
