@@ -102,6 +102,9 @@ async function loginSpotify() {
   const clientId = document.getElementById('client-id-input').value.trim();
   if (!clientId) return alert("Introduce tu Spotify Client ID.");
 
+  // Muestra la URL exacta que exige Spotify
+  alert("Copia esta URL exacta:\n" + REDIRECT_URI);
+
   localStorage.setItem('spotify_client_id', clientId);
   const verifier = generateRandomString(128);
   const challenge = await generateCodeChallenge(verifier);
@@ -119,7 +122,6 @@ async function loginSpotify() {
 
   window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
-
 async function exchangeCodeForToken(code) {
   const clientId = localStorage.getItem('spotify_client_id');
   const verifier = localStorage.getItem('code_verifier');
