@@ -3,98 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#06080d">
+  <meta name="theme-color" content="#030407">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Aura">
-  <title>Aura • Asistente & Reloj</title>
-
-  <link rel="manifest" href="manifest.json">
+  <title>Desk Orbit • Clock & Now Playing</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-  <div class="app-viewport">
-    <!-- 1. Bloque Meteorológico -->
-    <header class="weather-hero" id="weather-card" onclick="askWeather('hoy')">
-      <div class="weather-left">
-        <div class="weather-icon-big" id="w-icon">⛅</div>
-        <div class="weather-temp-giant" id="w-temp">--°</div>
-      </div>
-      <div class="weather-right">
-        <div class="weather-app-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="9"/>
-            <path d="M12 3a9 9 0 0 1 9 9"/>
-          </svg>
-          Aura • Bilbao
+  <!-- Fondo ambiental reactivo -->
+  <div class="ambient-glow" id="ambient-glow"></div>
+
+  <!-- Botón flotante para forzar pantalla completa inmersiva -->
+  <button class="fullscreen-trigger" id="fs-btn" onclick="toggleFullscreen()" title="Pantalla completa">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+    </svg>
+  </button>
+
+  <!-- Contenedor 3D tipo Libro / Cilindro -->
+  <div class="stage-viewport">
+    <div class="carousel-cylinder" id="cylinder">
+
+      <!-- PÁGINA 1: RELOJ ULTRA-CLEAN -->
+      <section class="cylinder-page page-clock active">
+        <div class="clock-display">
+          <div class="time-main">
+            <span id="hours-mins">--:--</span>
+            <span class="seconds-sub" id="seconds">--</span>
+          </div>
+          <div class="date-full" id="date-label">Cargando fecha...</div>
         </div>
-        <div class="weather-desc-lead" id="w-summary">Cargando...</div>
-        <div class="weather-submetrics" id="w-sub">Mín: --° • Máx: --° • 💧 --%</div>
-      </div>
-    </header>
+      </section>
 
-    <!-- 2. Reloj Principal (Tocar para activar asistente) -->
-    <main class="clock-container" id="clock-trigger" onclick="toggleVoice()">
-      <div class="time-digits">
-        <span id="hours-mins">--:--</span><span class="seconds-mark" id="seconds">--</span>
-      </div>
-      <div class="date-label" id="date-label">Cargando fecha...</div>
-      <div class="clock-hint" id="clock-hint">Toca la hora para hablar</div>
-    </main>
-
-    <!-- 3. Respuesta Asistente -->
-    <section class="assistant-bubble" id="assistant-bubble">
-      <div class="assistant-icon-mini" id="bubble-icon">
-        <svg viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="#38bdf8" stroke-width="2"/>
-          <circle cx="9" cy="9" r="3" fill="#fbbf24"/>
-          <path d="M12 5a7 7 0 0 1 7 7c0 3.8-3.1 7-7 7a6.9 6.9 0 0 1-4.2-1.4c3.4 0 6.2-2.8 6.2-6.2 0-2.4-1.3-4.5-3.2-5.6.7-.5 1.4-.8 2.2-.8z" fill="#e0e7ff"/>
-        </svg>
-      </div>
-      <div class="assistant-bubble-text" id="bubble-text">Aura lista. Pídeme el tiempo del fin de semana o tus próximos eventos.</div>
-    </section>
-
-    <!-- 4. Barra Inferior de Acciones Rápidas -->
-    <footer class="bottom-toolbar" id="main-toolbar">
-      <button class="btn-compact" onclick="askWeather('hoy')"><span>☀️</span> Hoy</button>
-      <button class="btn-compact" onclick="askWeather('finde')"><span>🏖️</span> Finde</button>
-      <button class="btn-compact" onclick="checkUpcomingEvents()"><span>🔮</span> Próximos</button>
-      <button class="btn-compact" onclick="openCalendarModal()"><span>📅</span> Agenda</button>
-      <button class="btn-compact btn-install-pwa" id="btn-install" onclick="triggerPwaInstall()"><span>📲</span> Instalar</button>
-    </footer>
-  </div>
-
-  <!-- Modal Calendario & Sincronización -->
-  <div class="modal-backdrop" id="calendar-modal">
-    <div class="modal-box">
-      <div class="modal-head">
-        <h3 class="modal-title">Agenda Aura & Google Calendar</h3>
-        <button class="btn-close" onclick="closeCalendarModal()">&times;</button>
-      </div>
-
-      <div class="sync-config-box">
-        <label>Importar calendario (archivo ical.zip o .ics):</label>
-        <div class="file-row">
-          <input type="file" id="file-calendar-input" accept=".zip,.ics" class="input-event">
-          <button class="btn-save-event" onclick="handleCalendarFileUpload()">Cargar</button>
+      <!-- PÁGINA 2: NOW PLAYING SPOTIFY -->
+      <section class="cylinder-page page-music">
+        <!-- Sub-vista A: Autorización -->
+        <div class="music-auth-card" id="music-auth">
+          <div class="auth-icon">🎵</div>
+          <h3>Spotify Now Playing</h3>
+          <p>Conéctate para ver lo que suena en tu PC o móvil.</p>
+          <input type="text" id="client-id-input" placeholder="Client ID de Spotify" class="dark-input">
+          <button class="btn-spotify" onclick="loginSpotify()">Conectar</button>
         </div>
-      </div>
 
-      <div class="events-list" id="events-container"></div>
+        <!-- Sub-vista B: Reproductor Vivo -->
+        <div class="music-player-grid" id="music-player" style="display: none;">
+          <div class="art-frame">
+            <img id="track-art" src="" alt="Album Art">
+            <div class="eq-badge" id="eq-indicator">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
 
-      <div class="quick-add-form">
-        <input type="text" id="new-event-title" placeholder="Nuevo evento (ej. Clase, Gym)..." class="input-event">
-        <div class="form-datetime-row">
-          <input type="date" id="new-event-date" class="input-event flex-1">
-          <input type="time" id="new-event-time" class="input-event w-100">
+          <div class="track-details">
+            <div class="track-text">
+              <h2 id="track-name">Sin reproducción activa</h2>
+              <h3 id="track-artist">Abre Spotify</h3>
+              <p id="track-album">--</p>
+            </div>
+
+            <!-- Progreso -->
+            <div class="progress-wrap">
+              <span id="time-cur">0:00</span>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+              </div>
+              <span id="time-tot">0:00</span>
+            </div>
+
+            <!-- Botones táctiles -->
+            <div class="track-actions">
+              <button class="ctrl-btn" onclick="controlPlayback('previous')">⏮️</button>
+              <button class="ctrl-btn btn-play" id="btn-play-pause" onclick="togglePlayPause()">▶️</button>
+              <button class="ctrl-btn" onclick="controlPlayback('next')">⏭️</button>
+            </div>
+
+            <div class="device-tag" id="device-label">🔊 Buscando dispositivo...</div>
+          </div>
         </div>
-        <button class="btn-save-event" onclick="addEventManual()">Guardar en Agenda</button>
-      </div>
+      </section>
+
     </div>
   </div>
+
+  <!-- Controles de navegación de libro (flechas e indicadores de página) -->
+  <nav class="book-nav">
+    <button class="nav-arrow" onclick="rotateBook(-1)">‹</button>
+    <div class="page-dots">
+      <span class="dot active" onclick="goToPage(0)"></span>
+      <span class="dot" onclick="goToPage(1)"></span>
+    </div>
+    <button class="nav-arrow" onclick="rotateBook(1)">›</button>
+  </nav>
 
   <script src="app.js"></script>
 </body>
