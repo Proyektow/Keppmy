@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#07090e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Gaua & Eguna • Reloj & Asistente</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(22, 27, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f0f4fc;
+      --text-dim: #7f8b9f;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --yellow: #facc15;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 16px 20px;
+      overflow: hidden;
+    }
+
+    /* Ubicación y estado */
+    .top-bar {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .city-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-bg);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Reloj gigante de escritorio */
+    .clock-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto 0;
+      text-align: center;
+    }
+
+    .time-display {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", monospace;
+      font-size: 5.5rem;
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -2px;
+      color: #fff;
+      text-shadow: 0 0 25px var(--accent-glow);
+    }
+
+    .seconds-pill {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-left: 4px;
+    }
+
+    .date-display {
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-top: 12px;
+      text-transform: capitalize;
+    }
+
+    /* Tarjeta de respuesta de la Asistente */
+    .assistant-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .assistant-avatar {
+      font-size: 2.2rem;
+      flex-shrink: 0;
+      background: rgba(56, 189, 248, 0.1);
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .assistant-text {
+      flex: 1;
+    }
+
+    .assistant-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .assistant-msg {
+      font-size: 0.98rem;
+      font-weight: 500;
+      line-height: 1.35;
+      margin-top: 2px;
+      color: #fff;
+    }
+
+    /* Botones y acciones */
+    .controls-wrapper {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-quick {
+      background: #131722;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .btn-quick:active {
+      background: #1e2538;
+      border-color: var(--accent);
+    }
+
+    /* Barra del micrófono */
+    .voice-bar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mic-btn {
+      flex: 1;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: none;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+      transition: transform 0.1s;
+    }
+
+    .mic-btn:active {
+      transform: scale(0.98);
+    }
+
+    .mic-btn.listening {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      animation: pulse-mic 1.2s infinite;
+    }
+
+    @keyframes pulse-mic {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra superior -->
+  <div class="top-bar">
+    <div class="city-badge">
+      <span>📍</span>
+      <span id="location-name">Bilbao</span>
+    </div>
+    <div id="ambient-temp" style="color: var(--yellow);">--°C</div>
+  </div>
+
+  <!-- Reloj Gigante -->
+  <main class="clock-section">
+    <div class="time-display">
+      <span id="hours-mins">--:--</span><span class="seconds-pill" id="seconds">--</span>
+    </div>
+    <div class="date-display" id="date-label">Cargando fecha...</div>
+  </main>
+
+  <!-- Tarjeta de Asistente -->
+  <div class="assistant-card" id="assistant-box">
+    <div class="assistant-avatar" id="assistant-icon">🤖</div>
+    <div class="assistant-text">
+      <div class="assistant-title" id="assistant-badge">Asistente activa</div>
+      <div class="assistant-msg" id="assistant-response">Pregúntame qué tiempo va a hacer hoy o mañana.</div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <footer class="controls-wrapper">
+    <div class="quick-actions">
+      <button class="btn-quick" onclick="askWeather('hoy')">
+        <span>☀️</span> ¿Qué tiempo hace hoy?
+      </button>
+      <button class="btn-quick" onclick="askWeather('mañana')">
+        <span>🌧️</span> ¿Qué tiempo hará mañana?
+      </button>
+    </div>
+
+    <div class="voice-bar">
+      <button class="mic-btn" id="btn-mic" onclick="toggleVoice()">
+        <span id="mic-icon">🎙️</span>
+        <span id="mic-label">Preguntar con la voz</span>
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    // 1. Reloj en tiempo real
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+
+      document.getElementById('hours-mins').textContent = `${h}:${m}`;
+      document.getElementById('seconds').textContent = s;
+
+      const options = { weekday: 'long', day: 'numeric', month: 'long' };
+      document.getElementById('date-label').textContent = now.toLocaleDateString('es-ES', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 2. Consulta meteorológica real (Open-Meteo, lat/lon de Bilbao por defecto)
+    const LAT = 43.263;
+    const LON = -2.935;
+
+    async function fetchWeatherData() {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
+        const res = await fetch(url);
+        return await res.json();
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Inicializar temperatura en la barra superior
+    async function initCurrentTemp() {
+      const data = await fetchWeatherData();
+      if (data && data.current) {
+        document.getElementById('ambient-temp').textContent = `${Math.round(data.current.temperature_2m)}°C`;
+      }
+    }
+    initCurrentTemp();
+
+    // Interpretar código WMO de clima
+    function interpretWeather(code, rainProb) {
+      if (code >= 51 && code <= 67) return { desc: "lluvia o llovizna", icon: "🌧️", advice: "coge paraguas" };
+      if (code >= 71 && code <= 86) return { desc: "nieve o chubascos helados", icon: "❄️", advice: "abrigo gordo obligatorio" };
+      if (code >= 95) return { desc: "tormenta", icon: "⛈️", advice: "evita estar al aire libre" };
+      if (code === 0) return { desc: "cielo totalmente despejado", icon: "☀️", advice: "buen día para pasear" };
+      if (code <= 3) return { desc: "intervalos nubosos", icon: "⛅", advice: (rainProb > 40 ? "por si acaso lleva chubasquero" : "temperatura agradable") };
+      return { desc: "cielo cubierto", icon: "☁️", advice: (rainProb > 40 ? "no te olvides el paraguas" : "ambiente fresco") };
+    }
+
+    // 3. Lógica de respuesta de la asistente
+    async function askWeather(targetDay) {
+      const isTomorrow = targetDay === 'mañana';
+      const dayIndex = isTomorrow ? 1 : 0;
+      const dayName = isTomorrow ? 'mañana' : 'hoy';
+
+      setAssistantState("Consultando satélites...", "🔍", "Analizando previsión...");
+
+      const data = await fetchWeatherData();
+      if (!data || !data.daily) {
+        speakAndDisplay("No he podido conectar con el servicio meteorológico. Comprueba la conexión Wi-Fi.", "⚠️", "Error de red");
+        return;
+      }
+
+      const max = Math.round(data.daily.temperature_2m_max[dayIndex]);
+      const min = Math.round(data.daily.temperature_2m_min[dayIndex]);
+      const rain = data.daily.precipitation_probability_max[dayIndex] || 0;
+      const code = data.daily.weather_code[dayIndex];
+      const weatherInfo = interpretWeather(code, rain);
+
+      const phrase = `${isTomorrow ? 'Mañana' : 'Hoy'} en Bilbao tendremos ${weatherInfo.desc}, con mínimas de ${min} grados y máximas de ${max}. La probabilidad de lluvia es del ${rain} por ciento. Te recomiendo que ${weatherInfo.advice}.`;
+
+      speakAndDisplay(phrase, weatherInfo.icon, `${max}° / ${min}° • ${rain}% lluvia`);
+    }
+
+    function setAssistantState(msg, icon, badge) {
+      document.getElementById('assistant-response').textContent = msg;
+      document.getElementById('assistant-icon').textContent = icon;
+      document.getElementById('assistant-badge').textContent = badge;
+    }
+
+    // 4. Voz sintetizada del navegador (Text-to-Speech)
+    function speakAndDisplay(text, icon, badge) {
+      setAssistantState(text, icon, badge);
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'es-ES';
+        utter.rate = 1.05;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    // 5. Reconocimiento de voz (Speech-to-Text)
+    let recognition = null;
+    let isListening = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechClass();
+      recognition.lang = 'es-ES';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isListening = true;
+        document.getElementById('btn-mic').classList.add('listening');
+        document.getElementById('mic-label').textContent = 'Escuchando...';
+        setAssistantState("Dime qué quieres saber...", "👂", "Escuchando");
+      };
+
+      recognition.onresult = (event) => {
+        const query = event.results[0][0].transcript.toLowerCase();
+        handleVoiceQuery(query);
+      };
+
+      recognition.onerror = () => {
+        stopListening();
+        setAssistantState("No te he entendido bien. Prueba de nuevo o pulsa los botones.", "🤔", "Vuelve a intentar");
+      };
+
+      recognition.onend = () => {
+        stopListening();
+      };
+    }
+
+    function toggleVoice() {
+      if (!recognition) {
+        alert("Tu navegador no soporta entrada de voz directa. Puedes usar los botones de acceso rápido.");
+        return;
+      }
+      if (isListening) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    }
+
+    function stopListening() {
+      isListening = false;
+      document.getElementById('btn-mic').classList.remove('listening');
+      document.getElementById('mic-label').textContent = 'Preguntar con la voz';
+    }
+
+    function handleVoiceQuery(text) {
+      if (text.includes('mañana')) {
+        askWeather('mañana');
+      } else if (text.includes('hoy') || text.includes('tiempo') || text.includes('lluvia') || text.includes('temperatura')) {
+        askWeather('hoy');
+      } else {
+        speakAndDisplay(`Has dicho: "${text}". Pregúntame si va a llover o qué tiempo hará hoy o mañana.`, "🤖", "Comando no reconocido");
+      }
+    }
+
+    // 6. Wake Lock para mantener encendida la pantalla del móvil en el soporte
+    async function keepAwake() {
+      try {
+        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+      } catch (e) {}
+    }
+    keepAwake();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') keepAwake();
+    });
+  </script>
+</body>
+</html>
