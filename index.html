@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#07090e">
+  <meta name="theme-color" content="#06080d">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Gaua & Eguna • Reloj & Asistente</title>
   <style>
     :root {
-      --bg: #07090e;
-      --card-bg: rgba(22, 27, 38, 0.7);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text: #f0f4fc;
-      --text-dim: #7f8b9f;
+      --bg: #06080d;
+      --card-bg: rgba(18, 22, 33, 0.75);
+      --card-border: rgba(255, 255, 255, 0.07);
+      --text: #f1f5f9;
+      --text-muted: #798599;
       --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.25);
-      --yellow: #facc15;
+      --accent-glow: rgba(56, 189, 248, 0.35);
+      --yellow: #fbbf24;
+      --red-mic: #ef4444;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -30,239 +31,365 @@
       flex-direction: column;
       justify-content: space-between;
       align-items: center;
-      padding: 24px 16px 20px;
+      padding: 16px 14px;
       overflow: hidden;
     }
 
-    /* Ubicación y estado */
-    .top-bar {
+    /* 1. SECCIÓN SUPERIOR: METEOROLOGÍA EN GRANDE */
+    .weather-hero {
       width: 100%;
-      max-width: 500px;
+      max-width: 440px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85rem;
-      color: var(--text-dim);
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(14px);
+      border-radius: 18px;
+      padding: 12px 18px;
+      cursor: pointer;
     }
 
-    .city-badge {
+    .weather-left {
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: var(--card-bg);
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--card-border);
+      gap: 12px;
     }
 
-    /* Reloj gigante de escritorio */
-    .clock-section {
+    .weather-icon-big {
+      font-size: 2.5rem;
+    }
+
+    .weather-temp-giant {
+      font-size: 2.8rem;
+      font-weight: 900;
+      line-height: 1;
+      color: #fff;
+    }
+
+    .weather-right {
+      text-align: right;
+    }
+
+    .weather-city {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .weather-desc-lead {
+      font-size: 0.82rem;
+      color: var(--text);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .weather-submetrics {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* 2. RELOJ GIGANTE (BOTÓN DISPARADOR DE LA ASISTENTE) */
+    .clock-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       margin: auto 0;
       text-align: center;
+      cursor: pointer;
+      position: relative;
+      border-radius: 24px;
+      padding: 12px 20px;
+      transition: transform 0.15s ease;
     }
 
-    .time-display {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", monospace;
-      font-size: 5.5rem;
+    .clock-container:active {
+      transform: scale(0.98);
+    }
+
+    .time-digits {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", monospace;
+      font-size: 6.2rem;
       font-weight: 900;
-      line-height: 0.95;
-      letter-spacing: -2px;
+      line-height: 0.92;
+      letter-spacing: -3px;
       color: #fff;
-      text-shadow: 0 0 25px var(--accent-glow);
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
     }
 
-    .seconds-pill {
-      font-size: 1.4rem;
+    .seconds-mark {
+      font-size: 1.5rem;
       font-weight: 700;
       color: var(--accent);
-      margin-left: 4px;
+      margin-left: 2px;
     }
 
-    .date-display {
-      font-size: 1.15rem;
+    .date-label {
+      font-size: 1.05rem;
       font-weight: 500;
-      color: var(--text-dim);
-      margin-top: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
       text-transform: capitalize;
     }
 
-    /* Tarjeta de respuesta de la Asistente */
-    .assistant-card {
+    .clock-hint {
+      font-size: 0.68rem;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-top: 6px;
+      opacity: 0.7;
+    }
+
+    /* Efecto al estar escuchando la voz */
+    .clock-container.listening .time-digits {
+      color: var(--red-mic);
+      text-shadow: 0 0 35px rgba(239, 68, 68, 0.7);
+      animation: pulse-clock 1.2s infinite;
+    }
+
+    .clock-container.listening .clock-hint {
+      color: var(--red-mic);
+      opacity: 1;
+      font-weight: 700;
+    }
+
+    @keyframes pulse-clock {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+
+    /* 3. TARJETA RESPUESTA COMPACTA DE LA ASISTENTE */
+    .assistant-bubble {
       width: 100%;
       max-width: 440px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      backdrop-filter: blur(12px);
-      border-radius: 18px;
-      padding: 16px;
-      margin-bottom: 12px;
+      border-radius: 14px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
-      gap: 14px;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
-    .assistant-avatar {
-      font-size: 2.2rem;
-      flex-shrink: 0;
+    .assistant-icon-mini {
+      font-size: 1.4rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
       background: rgba(56, 189, 248, 0.1);
-      width: 54px;
-      height: 54px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      flex-shrink: 0;
     }
 
-    .assistant-text {
+    .assistant-bubble-text {
       flex: 1;
-    }
-
-    .assistant-title {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--accent);
-      font-weight: 700;
-    }
-
-    .assistant-msg {
-      font-size: 0.98rem;
+      font-size: 0.85rem;
       font-weight: 500;
-      line-height: 1.35;
-      margin-top: 2px;
-      color: #fff;
+      line-height: 1.3;
+      color: var(--text);
     }
 
-    /* Botones y acciones */
-    .controls-wrapper {
+    /* 4. BOTONES COMPACTOS EN LÍNEA INFERIOR */
+    .bottom-toolbar {
       width: 100%;
       max-width: 440px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .quick-actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
     }
 
-    .btn-quick {
-      background: #131722;
+    .btn-compact {
+      background: #11141e;
       border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 0.88rem;
+      color: var(--text-muted);
+      padding: 9px 6px;
+      border-radius: 10px;
+      font-size: 0.74rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      transition: background 0.2s;
+      gap: 5px;
+      transition: background 0.15s;
     }
 
-    .btn-quick:active {
-      background: #1e2538;
+    .btn-compact:active {
+      background: #1c2233;
+      color: #fff;
       border-color: var(--accent);
     }
 
-    /* Barra del micrófono */
-    .voice-bar {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .mic-btn {
-      flex: 1;
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      border: none;
-      padding: 14px 18px;
-      border-radius: 14px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
+    /* 5. MODAL CALENDARIO / AGENDA */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 100;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
-      transition: transform 0.1s;
+      padding: 14px;
     }
 
-    .mic-btn:active {
-      transform: scale(0.98);
+    .modal-backdrop.open { display: flex; }
+
+    .modal-box {
+      background: #0f131d;
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 400px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
     }
 
-    .mic-btn.listening {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      animation: pulse-mic 1.2s infinite;
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 12px;
     }
 
-    @keyframes pulse-mic {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
-      50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+    .modal-title { font-size: 1rem; font-weight: 800; color: #fff; }
+    .btn-close {
+      background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;
+    }
+
+    .events-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .event-item {
+      background: #161c28;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .event-info h4 { font-size: 0.88rem; font-weight: 700; color: #fff; }
+    .event-info p { font-size: 0.72rem; color: var(--accent); margin-top: 2px; }
+
+    .btn-del-event {
+      background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 4px;
+    }
+
+    .quick-add-form {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 10px;
+    }
+
+    .input-event {
+      background: #1a2232;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .btn-save-event {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 9px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <!-- Barra superior -->
-  <div class="top-bar">
-    <div class="city-badge">
-      <span>📍</span>
-      <span id="location-name">Bilbao</span>
+  <!-- 1. El Tiempo en Grande -->
+  <header class="weather-hero" onclick="askWeather('hoy')">
+    <div class="weather-left">
+      <div class="weather-icon-big" id="w-icon">⛅</div>
+      <div class="weather-temp-giant" id="w-temp">--°</div>
     </div>
-    <div id="ambient-temp" style="color: var(--yellow);">--°C</div>
-  </div>
+    <div class="weather-right">
+      <div class="weather-city">Bilbao</div>
+      <div class="weather-desc-lead" id="w-summary">Cargando cielo...</div>
+      <div class="weather-submetrics" id="w-sub">Min: --° • Max: --° • 💧 --%</div>
+    </div>
+  </header>
 
-  <!-- Reloj Gigante -->
-  <main class="clock-section">
-    <div class="time-display">
-      <span id="hours-mins">--:--</span><span class="seconds-pill" id="seconds">--</span>
+  <!-- 2. Reloj Gigante (Disparador Asistente al Tocarlo) -->
+  <main class="clock-container" id="clock-trigger" onclick="toggleVoice()">
+    <div class="time-digits">
+      <span id="hours-mins">--:--</span><span class="seconds-mark" id="seconds">--</span>
     </div>
-    <div class="date-display" id="date-label">Cargando fecha...</div>
+    <div class="date-label" id="date-label">Lunes, 26 de octubre</div>
+    <div class="clock-hint" id="clock-hint">Toca la hora para hablar</div>
   </main>
 
-  <!-- Tarjeta de Asistente -->
-  <div class="assistant-card" id="assistant-box">
-    <div class="assistant-avatar" id="assistant-icon">🤖</div>
-    <div class="assistant-text">
-      <div class="assistant-title" id="assistant-badge">Asistente activa</div>
-      <div class="assistant-msg" id="assistant-response">Pregúntame qué tiempo va a hacer hoy o mañana.</div>
-    </div>
+  <!-- 3. Respuesta de la Asistente -->
+  <div class="assistant-bubble" id="assistant-bubble">
+    <div class="assistant-icon-mini" id="bubble-icon">🤖</div>
+    <div class="assistant-bubble-text" id="bubble-text">Toca la hora para pedir el tiempo o añadir un evento al calendario.</div>
   </div>
 
-  <!-- Controles -->
-  <footer class="controls-wrapper">
-    <div class="quick-actions">
-      <button class="btn-quick" onclick="askWeather('hoy')">
-        <span>☀️</span> ¿Qué tiempo hace hoy?
-      </button>
-      <button class="btn-quick" onclick="askWeather('mañana')">
-        <span>🌧️</span> ¿Qué tiempo hará mañana?
-      </button>
-    </div>
-
-    <div class="voice-bar">
-      <button class="mic-btn" id="btn-mic" onclick="toggleVoice()">
-        <span id="mic-icon">🎙️</span>
-        <span id="mic-label">Preguntar con la voz</span>
-      </button>
-    </div>
+  <!-- 4. Botones Pequeños de Acción Rápida -->
+  <footer class="bottom-toolbar">
+    <button class="btn-compact" onclick="askWeather('hoy')">
+      <span>☀️</span> Hoy
+    </button>
+    <button class="btn-compact" onclick="askWeather('mañana')">
+      <span>🌧️</span> Mañana
+    </button>
+    <button class="btn-compact" onclick="openCalendarModal()">
+      <span>📅</span> Agenda
+    </button>
   </footer>
+
+  <!-- 5. Modal de Agenda y Calendario -->
+  <div class="modal-backdrop" id="calendar-modal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 class="modal-title">Mi Agenda y Calendario</h3>
+        <button class="btn-close" onclick="closeCalendarModal()">&times;</button>
+      </div>
+
+      <div class="events-list" id="events-container">
+        <!-- Inyectado por JS -->
+      </div>
+
+      <div class="quick-add-form">
+        <input type="text" id="new-event-title" placeholder="Nuevo evento (ej. Clase de música, Gym)..." class="input-event">
+        <div style="display: flex; gap: 6px;">
+          <input type="date" id="new-event-date" class="input-event" style="flex: 1;">
+          <input type="time" id="new-event-time" class="input-event" style="width: 100px;">
+        </div>
+        <button class="btn-save-event" onclick="addEventManual()">Guardar en Agenda</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // 1. Reloj en tiempo real
@@ -275,79 +402,74 @@
       document.getElementById('hours-mins').textContent = `${h}:${m}`;
       document.getElementById('seconds').textContent = s;
 
-      const options = { weekday: 'long', day: 'numeric', month: 'long' };
-      document.getElementById('date-label').textContent = now.toLocaleDateString('es-ES', options);
+      const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+      document.getElementById('date-label').textContent = now.toLocaleDateString('es-ES', opts);
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. Consulta meteorológica real (Open-Meteo, lat/lon de Bilbao por defecto)
+    // 2. Consulta de Tiempo en Vivo (Open-Meteo Bilbao)
     const LAT = 43.263;
     const LON = -2.935;
+    let cachedWeather = null;
 
-    async function fetchWeatherData() {
+    async function loadWeather() {
       try {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
         const res = await fetch(url);
-        return await res.json();
+        cachedWeather = await res.json();
+
+        if (cachedWeather) {
+          const curTemp = Math.round(cachedWeather.current.temperature_2m);
+          const max = Math.round(cachedWeather.daily.temperature_2m_max[0]);
+          const min = Math.round(cachedWeather.daily.temperature_2m_min[0]);
+          const rain = cachedWeather.daily.precipitation_probability_max[0] || 0;
+          const info = interpretWeather(cachedWeather.current.weather_code, rain);
+
+          document.getElementById('w-temp').textContent = `${curTemp}°`;
+          document.getElementById('w-icon').textContent = info.icon;
+          document.getElementById('w-summary').textContent = info.desc;
+          document.getElementById('w-sub').textContent = `Mín: ${min}° • Máx: ${max}° • 💧 ${rain}%`;
+        }
       } catch (e) {
-        return null;
+        document.getElementById('w-summary').textContent = "Previsión no disponible";
       }
     }
+    loadWeather();
+    setInterval(loadWeather, 600000); // Refresco cada 10 min
 
-    // Inicializar temperatura en la barra superior
-    async function initCurrentTemp() {
-      const data = await fetchWeatherData();
-      if (data && data.current) {
-        document.getElementById('ambient-temp').textContent = `${Math.round(data.current.temperature_2m)}°C`;
-      }
-    }
-    initCurrentTemp();
-
-    // Interpretar código WMO de clima
-    function interpretWeather(code, rainProb) {
-      if (code >= 51 && code <= 67) return { desc: "lluvia o llovizna", icon: "🌧️", advice: "coge paraguas" };
-      if (code >= 71 && code <= 86) return { desc: "nieve o chubascos helados", icon: "❄️", advice: "abrigo gordo obligatorio" };
-      if (code >= 95) return { desc: "tormenta", icon: "⛈️", advice: "evita estar al aire libre" };
-      if (code === 0) return { desc: "cielo totalmente despejado", icon: "☀️", advice: "buen día para pasear" };
-      if (code <= 3) return { desc: "intervalos nubosos", icon: "⛅", advice: (rainProb > 40 ? "por si acaso lleva chubasquero" : "temperatura agradable") };
-      return { desc: "cielo cubierto", icon: "☁️", advice: (rainProb > 40 ? "no te olvides el paraguas" : "ambiente fresco") };
+    function interpretWeather(code, rain) {
+      if (code >= 51 && code <= 67) return { desc: "Lluvia", icon: "🌧️", advice: "coge paraguas" };
+      if (code >= 71 && code <= 86) return { desc: "Nieve", icon: "❄️", advice: "abrigo pesado" };
+      if (code >= 95) return { desc: "Tormenta", icon: "⛈️", advice: "precaución en la calle" };
+      if (code === 0) return { desc: "Despejado", icon: "☀️", advice: "buen día para salir" };
+      if (code <= 3) return { desc: "Nublado", icon: "⛅", advice: rain > 40 ? "probabilidad de chubascos" : "tiempo estable" };
+      return { desc: "Cubierto", icon: "☁️", advice: rain > 40 ? "posible llovizna" : "ambiente fresco" };
     }
 
-    // 3. Lógica de respuesta de la asistente
+    // 3. Respuestas de la Asistente (Texto + Voz TTS)
     async function askWeather(targetDay) {
-      const isTomorrow = targetDay === 'mañana';
-      const dayIndex = isTomorrow ? 1 : 0;
-      const dayName = isTomorrow ? 'mañana' : 'hoy';
-
-      setAssistantState("Consultando satélites...", "🔍", "Analizando previsión...");
-
-      const data = await fetchWeatherData();
-      if (!data || !data.daily) {
-        speakAndDisplay("No he podido conectar con el servicio meteorológico. Comprueba la conexión Wi-Fi.", "⚠️", "Error de red");
+      if (!cachedWeather) await loadWeather();
+      if (!cachedWeather || !cachedWeather.daily) {
+        speak("No he podido consultar el tiempo en este momento.", "⚠️");
         return;
       }
 
-      const max = Math.round(data.daily.temperature_2m_max[dayIndex]);
-      const min = Math.round(data.daily.temperature_2m_min[dayIndex]);
-      const rain = data.daily.precipitation_probability_max[dayIndex] || 0;
-      const code = data.daily.weather_code[dayIndex];
-      const weatherInfo = interpretWeather(code, rain);
+      const isTomorrow = targetDay === 'mañana';
+      const idx = isTomorrow ? 1 : 0;
+      const max = Math.round(cachedWeather.daily.temperature_2m_max[idx]);
+      const min = Math.round(cachedWeather.daily.temperature_2m_min[idx]);
+      const rain = cachedWeather.daily.precipitation_probability_max[idx] || 0;
+      const code = cachedWeather.daily.weather_code[idx];
+      const info = interpretWeather(code, rain);
 
-      const phrase = `${isTomorrow ? 'Mañana' : 'Hoy'} en Bilbao tendremos ${weatherInfo.desc}, con mínimas de ${min} grados y máximas de ${max}. La probabilidad de lluvia es del ${rain} por ciento. Te recomiendo que ${weatherInfo.advice}.`;
-
-      speakAndDisplay(phrase, weatherInfo.icon, `${max}° / ${min}° • ${rain}% lluvia`);
+      const phrase = `${isTomorrow ? 'Mañana' : 'Hoy'} en Bilbao tendremos ${info.desc}, con mínimas de ${min} grados y máximas de ${max}. La probabilidad de lluvia es del ${rain} por ciento. Te aconsejo que ${info.advice}.`;
+      speak(phrase, info.icon);
     }
 
-    function setAssistantState(msg, icon, badge) {
-      document.getElementById('assistant-response').textContent = msg;
-      document.getElementById('assistant-icon').textContent = icon;
-      document.getElementById('assistant-badge').textContent = badge;
-    }
-
-    // 4. Voz sintetizada del navegador (Text-to-Speech)
-    function speakAndDisplay(text, icon, badge) {
-      setAssistantState(text, icon, badge);
+    function speak(text, icon = "🤖") {
+      document.getElementById('bubble-text').textContent = text;
+      document.getElementById('bubble-icon').textContent = icon;
 
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -358,7 +480,87 @@
       }
     }
 
-    // 5. Reconocimiento de voz (Speech-to-Text)
+    // 4. Sistema de Calendario y Eventos en LocalStorage
+    let myEvents = JSON.parse(localStorage.getItem('garraioa_events') || '[]');
+
+    function saveEvents() {
+      localStorage.setItem('garraioa_events', JSON.stringify(myEvents));
+      renderEvents();
+    }
+
+    function renderEvents() {
+      const container = document.getElementById('events-container');
+      container.innerHTML = '';
+
+      if (myEvents.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:18px;">No tienes eventos programados.</div>';
+        return;
+      }
+
+      // Ordenar por fecha
+      myEvents.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+      myEvents.forEach((ev, idx) => {
+        const item = document.createElement('div');
+        item.className = 'event-item';
+        item.innerHTML = `
+          <div class="event-info">
+            <h4>${ev.title}</h4>
+            <p>📅 ${ev.date} a las ${ev.time}</p>
+          </div>
+          <button class="btn-del-event" onclick="deleteEvent(${idx})">&times;</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function addEventManual() {
+      const title = document.getElementById('new-event-title').value.trim();
+      const date = document.getElementById('new-event-date').value;
+      const time = document.getElementById('new-event-time').value || "12:00";
+
+      if (!title || !date) {
+        alert("Introduce un título y una fecha.");
+        return;
+      }
+
+      myEvents.push({ title, date, time });
+      saveEvents();
+      document.getElementById('new-event-title').value = '';
+      speak(`Añadido "${title}" para el día ${date}.`, "📅");
+    }
+
+    function deleteEvent(idx) {
+      myEvents.splice(idx, 1);
+      saveEvents();
+    }
+
+    function openCalendarModal() {
+      renderEvents();
+      document.getElementById('calendar-modal').classList.add('open');
+    }
+
+    function closeCalendarModal() {
+      document.getElementById('calendar-modal').classList.remove('open');
+    }
+
+    // Consultar eventos por voz
+    function checkEventsByVoice(isTomorrow = false) {
+      const targetDate = new Date();
+      if (isTomorrow) targetDate.setDate(targetDate.getDate() + 1);
+      const dateStr = targetDate.toISOString().split('T')[0];
+
+      const matches = myEvents.filter(e => e.date === dateStr);
+
+      if (matches.length === 0) {
+        speak(`No tienes nada anotado en tu agenda para ${isTomorrow ? 'mañana' : 'hoy'}.`, "📅");
+      } else {
+        const listText = matches.map(m => `${m.title} a las ${m.time}`).join(', ');
+        speak(`Para ${isTomorrow ? 'mañana' : 'hoy'} tienes previsto: ${listText}.`, "📅");
+      }
+    }
+
+    // 5. Reconocimiento de Voz al pulsar la hora
     let recognition = null;
     let isListening = false;
 
@@ -367,68 +569,82 @@
       recognition = new SpeechClass();
       recognition.lang = 'es-ES';
       recognition.continuous = false;
-      recognition.interimResults = false;
 
       recognition.onstart = () => {
         isListening = true;
-        document.getElementById('btn-mic').classList.add('listening');
-        document.getElementById('mic-label').textContent = 'Escuchando...';
-        setAssistantState("Dime qué quieres saber...", "👂", "Escuchando");
+        document.getElementById('clock-trigger').classList.add('listening');
+        document.getElementById('clock-hint').textContent = 'Escuchando tu voz...';
       };
 
-      recognition.onresult = (event) => {
-        const query = event.results[0][0].transcript.toLowerCase();
+      recognition.onresult = (e) => {
+        const query = e.results[0][0].transcript.toLowerCase();
         handleVoiceQuery(query);
       };
 
-      recognition.onerror = () => {
-        stopListening();
-        setAssistantState("No te he entendido bien. Prueba de nuevo o pulsa los botones.", "🤔", "Vuelve a intentar");
-      };
-
-      recognition.onend = () => {
-        stopListening();
-      };
+      recognition.onerror = () => stopListening();
+      recognition.onend = () => stopListening();
     }
 
     function toggleVoice() {
       if (!recognition) {
-        alert("Tu navegador no soporta entrada de voz directa. Puedes usar los botones de acceso rápido.");
+        alert("El navegador no soporta entrada de voz directa.");
         return;
       }
-      if (isListening) {
-        recognition.stop();
-      } else {
-        recognition.start();
-      }
+      if (isListening) recognition.stop();
+      else recognition.start();
     }
 
     function stopListening() {
       isListening = false;
-      document.getElementById('btn-mic').classList.remove('listening');
-      document.getElementById('mic-label').textContent = 'Preguntar con la voz';
+      document.getElementById('clock-trigger').classList.remove('listening');
+      document.getElementById('clock-hint').textContent = 'Toca la hora para hablar';
     }
 
+    // Intérprete de comandos por voz
     function handleVoiceQuery(text) {
-      if (text.includes('mañana')) {
+      // 1. Calendario / Agenda
+      if (text.includes('apuntar') || text.includes('añadir') || text.includes('anota') || text.includes('recordar')) {
+        let isTomorrow = text.includes('mañana');
+        const targetDate = new Date();
+        if (isTomorrow) targetDate.setDate(targetDate.getDate() + 1);
+        const dateStr = targetDate.toISOString().split('T')[0];
+
+        // Extraer hora si dice "a las 5", "a las 17:00", etc.
+        let timeStr = "12:00";
+        const hourMatch = text.match(/a las (\d{1,2})/);
+        if (hourMatch) timeStr = `${String(hourMatch[1]).padStart(2,'0')}:00`;
+
+        // Limpiar título del evento
+        let title = text.replace(/apuntar|añadir|anota|recordar|mañana|hoy|a las \d{1,2}/gi, '').trim();
+        if (!title) title = "Evento pendiente";
+
+        myEvents.push({ title: title.charAt(0).toUpperCase() + title.slice(1), date: dateStr, time: timeStr });
+        saveEvents();
+        speak(`Anotado en tu agenda: "${title}" para ${isTomorrow ? 'mañana' : 'hoy'} a las ${timeStr}.`, "✅");
+      } 
+      else if (text.includes('agenda') || text.includes('tengo hoy') || text.includes('planes')) {
+        checkEventsByVoice(text.includes('mañana'));
+      }
+      // 2. Tiempo / Clima
+      else if (text.includes('mañana')) {
         askWeather('mañana');
-      } else if (text.includes('hoy') || text.includes('tiempo') || text.includes('lluvia') || text.includes('temperatura')) {
+      } else if (text.includes('hoy') || text.includes('tiempo') || text.includes('llueve') || text.includes('temperatura')) {
         askWeather('hoy');
-      } else {
-        speakAndDisplay(`Has dicho: "${text}". Pregúntame si va a llover o qué tiempo hará hoy o mañana.`, "🤖", "Comando no reconocido");
+      } 
+      else {
+        speak(`Te he escuchado decir: "${text}". Puedes pedirme el tiempo o decirme "Apunta gimnasio mañana a las cinco".`, "🤔");
       }
     }
 
-    // 6. Wake Lock para mantener encendida la pantalla del móvil en el soporte
+    // Inicializar fecha por defecto en el formulario
+    document.getElementById('new-event-date').value = new Date().toISOString().split('T')[0];
+
+    // Wake Lock permanente para pantalla encendida
     async function keepAwake() {
-      try {
-        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
-      } catch (e) {}
+      try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch(e){}
     }
     keepAwake();
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') keepAwake();
-    });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
   </script>
 </body>
 </html>
