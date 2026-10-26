@@ -8,431 +8,66 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Aura">
-  <title>Aura • Tiempo & Asistente</title>
+  <title>Aura • Asistente & Reloj</title>
 
-  <!-- Favicon e Icono SVG integrado -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230f172a'/%3E%3Cstop offset='100%25' stop-color='%23020617'/%3E%3C/linearGradient%3E%3ClinearGradient id='ring' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='50%25' stop-color='%23818cf8'/%3E%3Cstop offset='100%25' stop-color='%23c084fc'/%3E%3C/linearGradient%3E%3ClinearGradient id='sun' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23fbbf24'/%3E%3Cstop offset='100%25' stop-color='%23f97316'/%3E%3C/linearGradient%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='16' result='blur'/%3E%3CfeComposite in='SourceGraphic' in2='blur' operator='over'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='512' height='512' rx='128' fill='url(%23bg)'/%3E%3Ccircle cx='256' cy='256' r='180' stroke='url(%23ring)' stroke-width='18' fill='none' filter='url(%23glow)' opacity='0.85'/%3E%3Ccircle cx='210' cy='220' r='58' fill='url(%23sun)' filter='url(%23glow)'/%3E%3Cpath d='M256,150 C320,150 370,200 370,265 C370,330 315,380 250,380 C215,380 185,365 165,340 C220,340 270,295 270,240 C270,195 240,162 205,153 C221,151 238,150 256,150 Z' fill='%23e0e7ff'/%3E%3C/svg%3E">
-
-  <!-- Manifest PWA con icono original embebido -->
-  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Aura%20%E2%80%A2%20Tiempo%20%26%20Asistente%22%2C%22short_name%22%3A%22Aura%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2306080d%22%2C%22theme_color%22%3A%22%2306080d%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20512%20512'%3E%3Crect%20width%3D'512'%20height%3D'512'%20rx%3D'128'%20fill%3D'%230b0e14'%2F%3E%3Ccircle%20cx%3D'256'%20cy%3D'256'%20r%3D'170'%20stroke%3D'%2338bdf8'%20stroke-width%3D'18'%20fill%3D'none'%2F%3E%3Ccircle%20cx%3D'215'%20cy%3D'215'%20r%3D'55'%20fill%3D'%23fbbf24'%2F%3E%3Cpath%20d%3D'M256%2C150%20C320%2C150%20370%2C200%20370%2C265%20C370%2C330%20315%2C380%20250%2C380%20C215%2C380%20185%2C365%20165%2C340%20C220%2C340%20270%2C295%20270%2C240%20C270%2C195%20240%2C162%20205%2C153%20C221%2C151%20238%2C150%20256%2C150%20Z'%20fill%3D'%23e0e7ff'%2F%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
-
-  <!-- JSZip para lectura de calendarios .zip -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-  <style>
-    :root {
-      --bg: #06080d;
-      --card-bg: rgba(18, 22, 33, 0.85);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text: #f1f5f9;
-      --text-muted: #798599;
-      --accent: #38bdf8;
-      --yellow: #fbbf24;
-      --red-mic: #ef4444;
-      --google-blue: #4285f4;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-
-    html, body {
-      height: 100%;
-      background-color: var(--bg);
-    }
-
-    body {
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-
-    /* 1. SECCIÓN SUPERIOR: TIEMPO */
-    .weather-hero {
-      width: 100%;
-      max-width: 440px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(14px);
-      border-radius: 16px;
-      padding: 10px 16px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .weather-left { display: flex; align-items: center; gap: 10px; }
-    .weather-icon-big { font-size: 2.2rem; }
-    .weather-temp-giant {
-      font-size: 2.4rem;
-      font-weight: 900;
-      line-height: 1;
-      color: #fff;
-    }
-
-    .weather-right { text-align: right; }
-    .weather-app-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.76rem;
-      font-weight: 800;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-    .weather-app-badge svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    .weather-desc-lead {
-      font-size: 0.8rem;
-      color: var(--text);
-      font-weight: 600;
-      margin-top: 1px;
-    }
-
-    .weather-submetrics {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    /* 2. RELOJ CENTRAL */
-    .clock-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      cursor: pointer;
-      border-radius: 20px;
-      padding: 8px 16px;
-      margin: 10px 0;
-      flex-shrink: 0;
-      transition: transform 0.15s ease;
-    }
-
-    .clock-container:active { transform: scale(0.98); }
-
-    .time-digits {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", monospace;
-      font-size: clamp(4.2rem, 16vw, 5.8rem);
-      font-weight: 900;
-      line-height: 0.95;
-      letter-spacing: -2px;
-      color: #fff;
-      text-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
-      transition: all 0.3s ease;
-    }
-
-    .seconds-mark {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--accent);
-      margin-left: 2px;
-    }
-
-    .date-label {
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      margin-top: 6px;
-      text-transform: capitalize;
-    }
-
-    .clock-hint {
-      font-size: 0.65rem;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-top: 4px;
-      opacity: 0.75;
-    }
-
-    .clock-container.listening .time-digits {
-      color: var(--red-mic);
-      text-shadow: 0 0 30px rgba(239, 68, 68, 0.7);
-      animation: pulse-clock 1.2s infinite;
-    }
-
-    .clock-container.listening .clock-hint {
-      color: var(--red-mic);
-      opacity: 1;
-      font-weight: 700;
-    }
-
-    @keyframes pulse-clock {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    /* 3. RESPUESTA ASISTENTE */
-    .assistant-bubble {
-      width: 100%;
-      max-width: 440px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 9px 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-shrink: 0;
-    }
-
-    .assistant-icon-mini {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .assistant-icon-mini svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    .assistant-bubble-text {
-      flex: 1;
-      font-size: 0.82rem;
-      font-weight: 500;
-      line-height: 1.3;
-      color: var(--text);
-    }
-
-    /* 4. BARRA INFERIOR */
-    .bottom-toolbar {
-      width: 100%;
-      max-width: 440px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .btn-compact {
-      background: #11141e;
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      padding: 8px 4px;
-      border-radius: 10px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      transition: background 0.15s;
-    }
-
-    .btn-compact:active {
-      background: #1c2233;
-      color: #fff;
-      border-color: var(--accent);
-    }
-
-    .btn-install-pwa {
-      border-color: rgba(56, 189, 248, 0.4);
-      color: var(--accent);
-    }
-
-    /* 5. MODAL CALENDARIO */
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-    }
-
-    .modal-backdrop.open { display: flex; }
-
-    .modal-box {
-      background: #0f131d;
-      border: 1px solid var(--card-border);
-      border-radius: 18px;
-      width: 100%;
-      max-width: 420px;
-      max-height: 85dvh;
-      display: flex;
-      flex-direction: column;
-      padding: 16px;
-    }
-
-    .modal-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--card-border);
-      margin-bottom: 10px;
-    }
-
-    .modal-title { font-size: 1rem; font-weight: 800; color: #fff; }
-    .btn-close {
-      background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;
-    }
-
-    .sync-config-box {
-      background: #161c28;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 8px 10px;
-      margin-bottom: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .sync-config-box label { font-size: 0.7rem; color: var(--accent); font-weight: 700; }
-
-    .events-list {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .event-item {
-      background: #161c28;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 9px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .event-info h4 { font-size: 0.85rem; font-weight: 700; color: #fff; }
-    .event-info p { font-size: 0.7rem; color: var(--accent); margin-top: 2px; }
-
-    .event-actions { display: flex; align-items: center; gap: 6px; }
-
-    .btn-gcal {
-      background: rgba(66, 133, 244, 0.15);
-      border: 1px solid var(--google-blue);
-      color: #93c5fd;
-      border-radius: 6px;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 4px 6px;
-      text-decoration: none;
-    }
-
-    .btn-del-event {
-      background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 2px;
-    }
-
-    .quick-add-form {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      border-top: 1px solid var(--card-border);
-      padding-top: 10px;
-    }
-
-    .input-event {
-      background: #1a2232;
-      border: 1px solid var(--card-border);
-      color: #fff;
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      outline: none;
-    }
-
-    .btn-save-event {
-      background: #0284c7;
-      color: #fff;
-      border: none;
-      padding: 9px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-  </style>
 </head>
 <body>
 
-  <!-- 1. El Tiempo -->
-  <header class="weather-hero" onclick="askWeather('hoy')">
-    <div class="weather-left">
-      <div class="weather-icon-big" id="w-icon">⛅</div>
-      <div class="weather-temp-giant" id="w-temp">--°</div>
-    </div>
-    <div class="weather-right">
-      <div class="weather-app-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="9"/>
-          <path d="M12 3a9 9 0 0 1 9 9"/>
-        </svg>
-        Aura • Bilbao
+  <div class="app-viewport">
+    <!-- 1. Bloque Meteorológico -->
+    <header class="weather-hero" id="weather-card" onclick="askWeather('hoy')">
+      <div class="weather-left">
+        <div class="weather-icon-big" id="w-icon">⛅</div>
+        <div class="weather-temp-giant" id="w-temp">--°</div>
       </div>
-      <div class="weather-desc-lead" id="w-summary">Cargando...</div>
-      <div class="weather-submetrics" id="w-sub">Mín: --° • Máx: --° • 💧 --%</div>
-    </div>
-  </header>
+      <div class="weather-right">
+        <div class="weather-app-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 3a9 9 0 0 1 9 9"/>
+          </svg>
+          Aura • Bilbao
+        </div>
+        <div class="weather-desc-lead" id="w-summary">Cargando...</div>
+        <div class="weather-submetrics" id="w-sub">Mín: --° • Máx: --° • 💧 --%</div>
+      </div>
+    </header>
 
-  <!-- 2. Reloj Central (Tocar la hora para hablar) -->
-  <main class="clock-container" id="clock-trigger" onclick="toggleVoice()">
-    <div class="time-digits">
-      <span id="hours-mins">--:--</span><span class="seconds-mark" id="seconds">--</span>
-    </div>
-    <div class="date-label" id="date-label">Cargando fecha...</div>
-    <div class="clock-hint" id="clock-hint">Toca la hora para hablar</div>
-  </main>
+    <!-- 2. Reloj Principal (Tocar para activar asistente) -->
+    <main class="clock-container" id="clock-trigger" onclick="toggleVoice()">
+      <div class="time-digits">
+        <span id="hours-mins">--:--</span><span class="seconds-mark" id="seconds">--</span>
+      </div>
+      <div class="date-label" id="date-label">Cargando fecha...</div>
+      <div class="clock-hint" id="clock-hint">Toca la hora para hablar</div>
+    </main>
 
-  <!-- 3. Respuesta Asistente -->
-  <div class="assistant-bubble" id="assistant-bubble">
-    <div class="assistant-icon-mini" id="bubble-icon">
-      <!-- Icono Aura SVG -->
-      <svg viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="#38bdf8" stroke-width="2"/>
-        <circle cx="9" cy="9" r="3" fill="#fbbf24"/>
-        <path d="M12 5a7 7 0 0 1 7 7c0 3.8-3.1 7-7 7a6.9 6.9 0 0 1-4.2-1.4c3.4 0 6.2-2.8 6.2-6.2 0-2.4-1.3-4.5-3.2-5.6.7-.5 1.4-.8 2.2-.8z" fill="#e0e7ff"/>
-      </svg>
-    </div>
-    <div class="assistant-bubble-text" id="bubble-text">Aura lista. Toca la hora para pedir el tiempo o añadir citas.</div>
+    <!-- 3. Respuesta Asistente -->
+    <section class="assistant-bubble" id="assistant-bubble">
+      <div class="assistant-icon-mini" id="bubble-icon">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#38bdf8" stroke-width="2"/>
+          <circle cx="9" cy="9" r="3" fill="#fbbf24"/>
+          <path d="M12 5a7 7 0 0 1 7 7c0 3.8-3.1 7-7 7a6.9 6.9 0 0 1-4.2-1.4c3.4 0 6.2-2.8 6.2-6.2 0-2.4-1.3-4.5-3.2-5.6.7-.5 1.4-.8 2.2-.8z" fill="#e0e7ff"/>
+        </svg>
+      </div>
+      <div class="assistant-bubble-text" id="bubble-text">Aura lista. Pídeme el tiempo del fin de semana o tus próximos eventos.</div>
+    </section>
+
+    <!-- 4. Barra Inferior de Acciones Rápidas -->
+    <footer class="bottom-toolbar" id="main-toolbar">
+      <button class="btn-compact" onclick="askWeather('hoy')"><span>☀️</span> Hoy</button>
+      <button class="btn-compact" onclick="askWeather('finde')"><span>🏖️</span> Finde</button>
+      <button class="btn-compact" onclick="checkUpcomingEvents()"><span>🔮</span> Próximos</button>
+      <button class="btn-compact" onclick="openCalendarModal()"><span>📅</span> Agenda</button>
+      <button class="btn-compact btn-install-pwa" id="btn-install" onclick="triggerPwaInstall()"><span>📲</span> Instalar</button>
+    </footer>
   </div>
 
-  <!-- 4. Barra Inferior Visible -->
-  <footer class="bottom-toolbar">
-    <button class="btn-compact" onclick="askWeather('hoy')">
-      <span>☀️</span> Hoy
-    </button>
-    <button class="btn-compact" onclick="askWeather('mañana')">
-      <span>🌧️</span> Mañana
-    </button>
-    <button class="btn-compact" onclick="openCalendarModal()">
-      <span>📅</span> Agenda
-    </button>
-    <button class="btn-compact btn-install-pwa" id="btn-install" onclick="triggerPwaInstall()">
-      <span>📲</span> Instalar
-    </button>
-  </footer>
-
-  <!-- 5. Modal Calendario -->
+  <!-- Modal Calendario & Sincronización -->
   <div class="modal-backdrop" id="calendar-modal">
     <div class="modal-box">
       <div class="modal-head">
@@ -440,12 +75,11 @@
         <button class="btn-close" onclick="closeCalendarModal()">&times;</button>
       </div>
 
-      <!-- Selector de Archivo ZIP / ICS -->
       <div class="sync-config-box">
         <label>Importar calendario (archivo ical.zip o .ics):</label>
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <input type="file" id="file-calendar-input" accept=".zip,.ics" class="input-event" style="flex: 1; font-size: 0.72rem; padding: 6px;">
-          <button class="btn-save-event" style="padding: 6px 10px; font-size: 0.72rem;" onclick="handleCalendarFileUpload()">Cargar</button>
+        <div class="file-row">
+          <input type="file" id="file-calendar-input" accept=".zip,.ics" class="input-event">
+          <button class="btn-save-event" onclick="handleCalendarFileUpload()">Cargar</button>
         </div>
       </div>
 
@@ -453,375 +87,15 @@
 
       <div class="quick-add-form">
         <input type="text" id="new-event-title" placeholder="Nuevo evento (ej. Clase, Gym)..." class="input-event">
-        <div style="display: flex; gap: 6px;">
-          <input type="date" id="new-event-date" class="input-event" style="flex: 1;">
-          <input type="time" id="new-event-time" class="input-event" style="width: 100px;">
+        <div class="form-datetime-row">
+          <input type="date" id="new-event-date" class="input-event flex-1">
+          <input type="time" id="new-event-time" class="input-event w-100">
         </div>
         <button class="btn-save-event" onclick="addEventManual()">Guardar en Agenda</button>
       </div>
     </div>
   </div>
 
-  <script>
-    // 1. Registro PWA
-    let deferredPrompt = null;
-    const installBtn = document.getElementById('btn-install');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'flex';
-    });
-
-    function triggerPwaInstall() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            installBtn.style.display = 'none';
-          }
-          deferredPrompt = null;
-        });
-      } else {
-        alert("Pulsa los 3 puntos de Chrome (arriba a la derecha) y selecciona 'Añadir a pantalla de inicio' o 'Instalar aplicación'.");
-      }
-    }
-
-    if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', (e) => self.skipWaiting());
-        self.addEventListener('activate', (e) => self.clients.claim());
-        self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
-      `;
-      const blob = new Blob([swCode], { type: 'text/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-    }
-
-    // 2. Reloj en tiempo real
-    function updateClock() {
-      const now = new Date();
-      const h = String(now.getHours()).padStart(2, '0');
-      const m = String(now.getMinutes()).padStart(2, '0');
-      const s = String(now.getSeconds()).padStart(2, '0');
-
-      document.getElementById('hours-mins').textContent = `${h}:${m}`;
-      document.getElementById('seconds').textContent = s;
-
-      const opts = { weekday: 'long', day: 'numeric', month: 'long' };
-      document.getElementById('date-label').textContent = now.toLocaleDateString('es-ES', opts);
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // 3. Meteorología en Vivo (Bilbao)
-    const LAT = 43.263;
-    const LON = -2.935;
-    let cachedWeather = null;
-
-    async function loadWeather() {
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
-        const res = await fetch(url);
-        cachedWeather = await res.json();
-
-        if (cachedWeather) {
-          const curTemp = Math.round(cachedWeather.current.temperature_2m);
-          const max = Math.round(cachedWeather.daily.temperature_2m_max[0]);
-          const min = Math.round(cachedWeather.daily.temperature_2m_min[0]);
-          const rain = cachedWeather.daily.precipitation_probability_max[0] || 0;
-          const info = interpretWeather(cachedWeather.current.weather_code, rain);
-
-          document.getElementById('w-temp').textContent = `${curTemp}°`;
-          document.getElementById('w-icon').textContent = info.icon;
-          document.getElementById('w-summary').textContent = info.desc;
-          document.getElementById('w-sub').textContent = `Mín: ${min}° • Máx: ${max}° • 💧 ${rain}%`;
-        }
-      } catch (e) {
-        document.getElementById('w-summary').textContent = "Previsión local";
-      }
-    }
-    loadWeather();
-    setInterval(loadWeather, 600000);
-
-    function interpretWeather(code, rain) {
-      if (code >= 51 && code <= 67) return { desc: "Lluvia", icon: "🌧️", advice: "coge paraguas" };
-      if (code >= 71 && code <= 86) return { desc: "Nieve", icon: "❄️", advice: "abrigo gordo" };
-      if (code >= 95) return { desc: "Tormenta", icon: "⛈️", advice: "cuidado en la calle" };
-      if (code === 0) return { desc: "Despejado", icon: "☀️", advice: "buen día para salir" };
-      if (code <= 3) return { desc: "Nublado", icon: "⛅", advice: rain > 40 ? "posible chaparrón" : "buena temperatura" };
-      return { desc: "Cubierto", icon: "☁️", advice: rain > 40 ? "lleva chubasquero" : "ambiente fresco" };
-    }
-
-    async function askWeather(targetDay) {
-      if (!cachedWeather) await loadWeather();
-      if (!cachedWeather || !cachedWeather.daily) {
-        speak("No he podido consultar el tiempo.", "⚠️");
-        return;
-      }
-
-      const isTomorrow = targetDay === 'mañana';
-      const idx = isTomorrow ? 1 : 0;
-      const max = Math.round(cachedWeather.daily.temperature_2m_max[idx]);
-      const min = Math.round(cachedWeather.daily.temperature_2m_min[idx]);
-      const rain = cachedWeather.daily.precipitation_probability_max[idx] || 0;
-      const code = cachedWeather.daily.weather_code[idx];
-      const info = interpretWeather(code, rain);
-
-      const phrase = `${isTomorrow ? 'Mañana' : 'Hoy'} en Bilbao tendremos ${info.desc}, con mínimas de ${min} y máximas de ${max} grados. Probabilidad de lluvia del ${rain} por ciento. Te aconsejo que ${info.advice}.`;
-      speak(phrase, info.icon);
-    }
-
-    function speak(text, icon = null) {
-      document.getElementById('bubble-text').textContent = text;
-      if (icon) {
-        document.getElementById('bubble-icon').innerHTML = `<span style="font-size:1.3rem;">${icon}</span>`;
-      }
-
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'es-ES';
-        utter.rate = 1.05;
-        window.speechSynthesis.speak(utter);
-      }
-    }
-
-    // 4. Calendario y Manejo de ical.zip / .ics
-    let myEvents = JSON.parse(localStorage.getItem('aura_events') || '[]');
-
-    function saveEvents() {
-      localStorage.setItem('aura_events', JSON.stringify(myEvents));
-      renderEvents();
-    }
-
-    function createGCalUrl(title, date, time) {
-      const startDateTime = new Date(`${date}T${time || '12:00'}:00`);
-      const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
-      const formatGCal = (d) => d.toISOString().replace(/-|:|\.\d+/g, '');
-      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatGCal(startDateTime)}/${formatGCal(endDateTime)}`;
-    }
-
-    function renderEvents() {
-      const container = document.getElementById('events-container');
-      container.innerHTML = '';
-
-      if (myEvents.length === 0) {
-        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:18px;">No tienes eventos programados. Sube tu ical.zip o añade uno.</div>';
-        return;
-      }
-
-      myEvents.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-
-      myEvents.forEach((ev, idx) => {
-        const item = document.createElement('div');
-        item.className = 'event-item';
-        const gcalUrl = createGCalUrl(ev.title, ev.date, ev.time);
-
-        item.innerHTML = `
-          <div class="event-info">
-            <h4>${ev.title}</h4>
-            <p>📅 ${ev.date} a las ${ev.time} ${ev.source === 'google' ? '• Google' : ''}</p>
-          </div>
-          <div class="event-actions">
-            <a href="${gcalUrl}" target="_blank" class="btn-gcal">GCal ↗</a>
-            <button class="btn-del-event" onclick="deleteEvent(${idx})">&times;</button>
-          </div>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function addEventManual() {
-      const title = document.getElementById('new-event-title').value.trim();
-      const date = document.getElementById('new-event-date').value;
-      const time = document.getElementById('new-event-time').value || "12:00";
-
-      if (!title || !date) {
-        alert("Introduce un título y una fecha.");
-        return;
-      }
-
-      myEvents.push({ title, date, time, source: 'local' });
-      saveEvents();
-      document.getElementById('new-event-title').value = '';
-      speak(`Añadido "${title}" para el día ${date}.`, "📅");
-    }
-
-    function deleteEvent(idx) {
-      myEvents.splice(idx, 1);
-      saveEvents();
-    }
-
-    async function handleCalendarFileUpload() {
-      const fileInput = document.getElementById('file-calendar-input');
-      if (!fileInput.files || fileInput.files.length === 0) {
-        alert("Selecciona primero el archivo ical.zip desde tu móvil.");
-        return;
-      }
-
-      const file = fileInput.files[0];
-
-      try {
-        if (file.name.endsWith('.zip')) {
-          const zip = await JSZip.loadAsync(file);
-          let foundIcs = false;
-
-          for (const filename of Object.keys(zip.files)) {
-            if (filename.endsWith('.ics')) {
-              foundIcs = true;
-              const icsContent = await zip.files[filename].async('string');
-              parseIcsEvents(icsContent);
-            }
-          }
-
-          if (foundIcs) {
-            speak("Calendarios de Google importados correctamente.", "✅");
-          } else {
-            alert("El archivo ZIP no contiene ningún archivo .ics.");
-          }
-        } else if (file.name.endsWith('.ics')) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            parseIcsEvents(e.target.result);
-            speak("Calendario importado correctamente.", "✅");
-          };
-          reader.readAsText(file);
-        } else {
-          alert("Por favor selecciona un archivo .zip o .ics.");
-        }
-      } catch (err) {
-        alert("Error al leer el archivo: " + err.message);
-      }
-    }
-
-    function parseIcsEvents(icsData) {
-      const lines = icsData.split(/\r\n|\n|\r/);
-      let inEvent = false, curTitle = '', curDate = '', curTime = '10:00';
-
-      lines.forEach(line => {
-        if (line.startsWith('BEGIN:VEVENT')) {
-          inEvent = true; curTitle = ''; curDate = ''; curTime = '10:00';
-        } else if (line.startsWith('END:VEVENT')) {
-          if (inEvent && curTitle && curDate) {
-            if (!myEvents.some(e => e.title === curTitle && e.date === curDate)) {
-              myEvents.push({ title: curTitle, date: curDate, time: curTime, source: 'google' });
-            }
-          }
-          inEvent = false;
-        } else if (inEvent) {
-          if (line.startsWith('SUMMARY:')) curTitle = line.replace('SUMMARY:', '').trim();
-          if (line.startsWith('DTSTART')) {
-            const val = line.split(':')[1] || '';
-            if (val.length >= 8) {
-              curDate = `${val.slice(0,4)}-${val.slice(4,6)}-${val.slice(6,8)}`;
-              if (val.length >= 13) curTime = `${val.slice(9,11)}:${val.slice(11,13)}`;
-            }
-          }
-        }
-      });
-      saveEvents();
-    }
-
-    function openCalendarModal() {
-      renderEvents();
-      document.getElementById('calendar-modal').classList.add('open');
-    }
-
-    function closeCalendarModal() {
-      document.getElementById('calendar-modal').classList.remove('open');
-    }
-
-    function checkEventsByVoice(isTomorrow = false) {
-      const targetDate = new Date();
-      if (isTomorrow) targetDate.setDate(targetDate.getDate() + 1);
-      const dateStr = targetDate.toISOString().split('T')[0];
-
-      const matches = myEvents.filter(e => e.date === dateStr);
-      if (matches.length === 0) {
-        speak(`No tienes nada anotado para ${isTomorrow ? 'mañana' : 'hoy'}.`, "📅");
-      } else {
-        const listText = matches.map(m => `${m.title} a las ${m.time}`).join(', ');
-        speak(`Para ${isTomorrow ? 'mañana' : 'hoy'} tienes previsto: ${listText}.`, "📅");
-      }
-    }
-
-    // 5. Entrada por Voz al pulsar la hora
-    let recognition = null;
-    let isListening = false;
-
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechClass();
-      recognition.lang = 'es-ES';
-      recognition.continuous = false;
-
-      recognition.onstart = () => {
-        isListening = true;
-        document.getElementById('clock-trigger').classList.add('listening');
-        document.getElementById('clock-hint').textContent = 'Aura te está escuchando...';
-      };
-
-      recognition.onresult = (e) => {
-        const query = e.results[0][0].transcript.toLowerCase();
-        handleVoiceQuery(query);
-      };
-
-      recognition.onerror = () => stopListening();
-      recognition.onend = () => stopListening();
-    }
-
-    function toggleVoice() {
-      if (!recognition) {
-        alert("El navegador no soporta entrada de voz.");
-        return;
-      }
-      if (isListening) recognition.stop();
-      else recognition.start();
-    }
-
-    function stopListening() {
-      isListening = false;
-      document.getElementById('clock-trigger').classList.remove('listening');
-      document.getElementById('clock-hint').textContent = 'Toca la hora para hablar';
-    }
-
-    function handleVoiceQuery(text) {
-      if (text.includes('apuntar') || text.includes('añadir') || text.includes('anota') || text.includes('recordar')) {
-        let isTomorrow = text.includes('mañana');
-        const targetDate = new Date();
-        if (isTomorrow) targetDate.setDate(targetDate.getDate() + 1);
-        const dateStr = targetDate.toISOString().split('T')[0];
-
-        let timeStr = "12:00";
-        const hourMatch = text.match(/a las (\d{1,2})/);
-        if (hourMatch) timeStr = `${String(hourMatch[1]).padStart(2,'0')}:00`;
-
-        let title = text.replace(/apuntar|añadir|anota|recordar|mañana|hoy|a las \d{1,2}/gi, '').trim();
-        if (!title) title = "Evento pendiente";
-
-        myEvents.push({ title: title.charAt(0).toUpperCase() + title.slice(1), date: dateStr, time: timeStr, source: 'local' });
-        saveEvents();
-        speak(`Anotado: "${title}" para ${isTomorrow ? 'mañana' : 'hoy'} a las ${timeStr}.`, "✅");
-      } 
-      else if (text.includes('agenda') || text.includes('tengo hoy') || text.includes('planes')) {
-        checkEventsByVoice(text.includes('mañana'));
-      }
-      else if (text.includes('mañana')) {
-        askWeather('mañana');
-      } else if (text.includes('hoy') || text.includes('tiempo') || text.includes('llueve') || text.includes('temperatura')) {
-        askWeather('hoy');
-      } else {
-        speak(`He oído: "${text}". Puedes pedirme el tiempo o decir "Apunta reunión mañana a las cinco".`, "🤔");
-      }
-    }
-
-    document.getElementById('new-event-date').value = new Date().toISOString().split('T')[0];
-
-    async function keepAwake() {
-      try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch(e){}
-    }
-    keepAwake();
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
