@@ -3,27 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#030407">
+  <meta name="theme-color" content="#020408">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Desk Orbit • Clock, Music & Panda House</title>
+  <title>Desk Orbit • Clock, Music & Calendar</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-  <!-- Fondo ambiental reactivo -->
+  <!-- Fondo dinámico con desenfoque reactivo -->
   <div class="ambient-glow" id="ambient-glow"></div>
 
-  <!-- Botón Pantalla Completa -->
-  <button class="fullscreen-trigger" onclick="toggleFullscreen()" title="Pantalla completa">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-    </svg>
-  </button>
+  <!-- Banner de alerta de eventos próximos -->
+  <aside class="event-banner-toast" id="event-toast">
+    <div class="toast-indicator">🔔</div>
+    <div class="toast-body">
+      <div class="toast-title" id="toast-title">Cita próxima</div>
+      <div class="toast-meta" id="toast-meta">En menos de 10 minutos</div>
+    </div>
+  </aside>
 
-  <!-- Contenedor del Carrusel -->
+  <!-- Botones de esquina: Modo Pantalla Completa y Permiso Notificaciones -->
+  <header class="top-bar-controls">
+    <button class="icon-chip" id="notif-toggle-btn" onclick="requestNotificationPermission()" title="Notificaciones de eventos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      <span class="chip-badge" id="notif-badge"></span>
+    </button>
+    <button class="icon-chip" onclick="toggleFullscreen()" title="Pantalla completa inmersiva">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Contenedor del Carrusel (3 caras) -->
   <div class="stage-viewport">
     <div class="carousel-track" id="carousel-track">
 
@@ -35,25 +53,34 @@
             <span class="seconds-sub" id="seconds">--</span>
           </div>
           <div class="date-full" id="date-label">Cargando fecha...</div>
+          
+          <!-- Widget rápido de la próxima cita del día -->
+          <div class="next-agenda-pill" id="next-agenda-pill" onclick="goToSlide(2)">
+            <span class="pill-dot"></span>
+            <span class="pill-text" id="quick-agenda-text">Sin citas inmediatas</span>
+          </div>
         </div>
       </section>
 
       <!-- ================= PÁGINA 2: SPOTIFY NOW PLAYING ================= -->
       <section class="stage-slide slide-music">
-        <!-- Sub-vista A: Autorización -->
+        <!-- Tarjeta de conexión -->
         <div class="music-auth-card" id="music-auth">
           <div class="auth-icon">
-            <svg viewBox="0 0 24 24" fill="#1db954" width="44" height="44">
+            <svg viewBox="0 0 24 24" fill="#1ed760" width="46" height="46">
               <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.495 17.303c-.215.353-.676.467-1.03.25-2.822-1.724-6.375-2.115-10.56-1.158-.403.092-.81-.16-.902-.563-.092-.404.16-.811.563-.903 4.582-1.047 8.513-.604 11.677 1.344.354.217.468.677.252 1.03zm1.467-3.26c-.27.44-.848.58-1.288.31-3.23-1.986-8.155-2.56-11.976-1.4-1.498-.5-.815.148-1.314-.352-.15-.499.148-1.002.648-1.152 4.372-1.326 9.794-.69 13.43 1.545.44.27.58.848.31 1.289zm.126-3.41c-3.873-2.3-10.264-2.513-13.98-1.383-.594.18-1.222-.156-1.403-.75-.18-.594.156-1.223.75-1.404 4.267-1.295 11.318-1.047 15.787 1.606.534.317.708 1.01.39 1.545-.317.534-1.01.708-1.544.39z"/>
             </svg>
           </div>
           <h3>Spotify Now Playing</h3>
-          <p>Conecta tu cuenta para ver la carátula y el control en directo.</p>
-          <input type="text" id="client-id-input" placeholder="Client ID de Spotify" class="dark-input">
-          <button class="btn-spotify" onclick="loginSpotify()">Conectar cuenta</button>
+          <p>Control de carátula y reproducción para tu escritorio.</p>
+          <input type="text" id="client-id-input" placeholder="Spotify Client ID" class="dark-input">
+          <div class="auth-btn-row">
+            <button class="btn-spotify" onclick="loginSpotify()">Conectar cuenta</button>
+            <button class="btn-demo" onclick="activateDemoMusic()">Modo Demo</button>
+          </div>
         </div>
 
-        <!-- Sub-vista B: Reproductor Activo -->
+        <!-- Reproductor Activo -->
         <div class="music-player-layout" id="music-player" style="display: none;">
           <div class="art-column">
             <div class="art-frame">
@@ -67,13 +94,13 @@
           <div class="track-column">
             <div class="track-header">
               <h2 id="track-name">Sin reproducción</h2>
-              <h3 id="track-artist">Abre Spotify en tu ordenador</h3>
+              <h3 id="track-artist">Abre Spotify</h3>
               <p id="track-album">--</p>
             </div>
 
             <div class="progress-wrap">
               <span id="time-cur">0:00</span>
-              <div class="progress-bar">
+              <div class="progress-bar" onclick="seekSong(event)">
                 <div class="progress-fill" id="progress-fill"></div>
               </div>
               <span id="time-tot">0:00</span>
@@ -99,93 +126,72 @@
         </div>
       </section>
 
-      <!-- ================= PÁGINA 3: CASA COMPLETA DEL PANDA ================= -->
-      <section class="stage-slide slide-panda">
-        <div class="panda-main-wrapper">
-          
-          <div class="house-header">
-            <span class="house-title">🏠 Residencia Panda</span>
-            <span class="house-status" id="panda-state-label">Descansando</span>
+      <!-- ================= PÁGINA 3: AGENDA & RECORDATORIOS ================= -->
+      <section class="stage-slide slide-calendar">
+        <div class="calendar-layout">
+          <!-- Columna Izquierda: Formulario y carga de archivo -->
+          <div class="calendar-composer">
+            <div class="composer-header">
+              <h3>Agenda de Mesa</h3>
+              <span class="agenda-count" id="agenda-count-badge">0 eventos</span>
+            </div>
+
+            <form class="event-form" onsubmit="handleManualEventSubmit(event)">
+              <input type="text" id="ev-title" placeholder="Título (ej. Reunión, Gym, Clase)..." required class="cal-input">
+              <div class="cal-input-row">
+                <input type="date" id="ev-date" required class="cal-input flex-1">
+                <input type="time" id="ev-time" required class="cal-input w-time">
+              </div>
+              <button type="submit" class="btn-add-event">+ Guardar recordatorio</button>
+            </form>
+
+            <div class="ical-dropzone">
+              <label for="ics-file-input" class="file-label">
+                <span>📁 Importar .ics descargado</span>
+                <input type="file" id="ics-file-input" accept=".ics" onchange="handleIcsUpload(event)">
+              </label>
+            </div>
           </div>
 
-          <!-- Estructura de la Casa (Vista aérea arquitectónica) -->
-          <div class="house-blueprint" id="house-floor">
-
-            <!-- HABITACIÓN 1: DORMITORIO -->
-            <div class="room-zone zone-bedroom" onclick="forcePandaAction('bed')">
-              <div class="room-label">Dormitorio</div>
-              <div class="furn-item bed-double">
-                <div class="bed-pillows"><span></span><span></span></div>
-                <div class="bed-duvet"></div>
-              </div>
-              <div class="furn-item rug-bed"></div>
-              <div class="furn-item nightstand"></div>
+          <!-- Columna Derecha: Lista de citas ordenadas cronológicamente -->
+          <div class="calendar-list-view">
+            <div class="list-head">Citas Programadas</div>
+            <div class="events-scroll" id="events-scroll-container">
+              <!-- Rellenado por app.js -->
             </div>
-
-            <!-- HABITACIÓN 2: OFICINA / SETUP -->
-            <div class="room-zone zone-office" onclick="forcePandaAction('desk')">
-              <div class="room-label">Despacho</div>
-              <div class="furn-item office-desk">
-                <div class="dual-monitor"><span></span><span></span></div>
-                <div class="keyboard-pad"></div>
-              </div>
-              <div class="furn-item gaming-chair"></div>
-            </div>
-
-            <!-- HABITACIÓN 3: COCINA & COMEDOR -->
-            <div class="room-zone zone-kitchen" onclick="forcePandaAction('fridge')">
-              <div class="room-label">Cocina</div>
-              <div class="furn-item counter-cooktop"></div>
-              <div class="furn-item fridge-steel"><span>BAMBÚ</span></div>
-              <div class="furn-item dining-table"><div class="bamboo-bowl">🎋</div></div>
-            </div>
-
-            <!-- HABITACIÓN 4: BAÑO -->
-            <div class="room-zone zone-bathroom" onclick="forcePandaAction('bath')">
-              <div class="room-label">Aseo</div>
-              <div class="furn-item shower-cabin"></div>
-              <div class="furn-item toilet-unit"></div>
-              <div class="furn-item sink-unit"></div>
-            </div>
-
-            <!-- PASILLO CENTRAL -->
-            <div class="hallway-strip" onclick="forcePandaAction('hall')"></div>
-
-            <!-- PERSONAJE PANDA VISTO DESDE ARRIBA CON DETALLES -->
-            <div class="panda-entity" id="panda-avatar">
-              <div class="speech-bubble" id="panda-bubble">¡Hola! 🐾</div>
-              <div class="panda-top-ears">
-                <span class="p-ear left"></span>
-                <span class="p-ear right"></span>
-              </div>
-              <div class="panda-top-head">
-                <div class="p-eye left"></div>
-                <div class="p-eye right"></div>
-                <div class="p-snout"></div>
-              </div>
-              <div class="panda-top-body">
-                <div class="p-shoulder-patch"></div>
-              </div>
-            </div>
-
           </div>
-
-          <!-- Controles de la casa -->
-          <div class="house-actions-row">
-            <button class="btn-room" onclick="forcePandaAction('bed')">🛏️ Dormir</button>
-            <button class="btn-room" onclick="forcePandaAction('desk')">💻 Setup</button>
-            <button class="btn-room" onclick="forcePandaAction('fridge')">🎋 Comer</button>
-            <button class="btn-room" onclick="forcePandaAction('bath')">🚿 Ducha</button>
-            <button class="btn-room" onclick="forcePandaAction('hall')">🚶 Pasillo</button>
-          </div>
-
         </div>
       </section>
 
     </div>
   </div>
 
-  <!-- Navegación inferior fija -->
+  <!-- PANDA VAGABUNDO EN EL FONDO -->
+  <div class="panda-wanderer" id="panda-walker" onclick="interactWithPanda()">
+    <div class="panda-thought" id="panda-thought">🎋 ¡Ñam!</div>
+    <div class="panda-sprite">
+      <div class="p-ears">
+        <span class="p-ear left"></span>
+        <span class="p-ear right"></span>
+      </div>
+      <div class="p-head">
+        <span class="p-eye left"></span>
+        <span class="p-eye right"></span>
+        <span class="p-nose"></span>
+      </div>
+      <div class="p-body">
+        <span class="p-bamboo-stem" id="panda-bamboo">🎋</span>
+        <span class="p-paw left"></span>
+        <span class="p-paw right"></span>
+      </div>
+      <div class="p-feet">
+        <span class="p-foot left"></span>
+        <span class="p-foot right"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navegación inferior flotante -->
   <nav class="book-nav">
     <button class="nav-arrow" onclick="rotateSlide(-1)">‹</button>
     <div class="page-dots">
