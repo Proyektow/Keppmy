@@ -665,6 +665,30 @@ html, body {
 @media (orientation: portrait) {
   .music-player-layout { flex-direction: column; gap: 18px; }
   .track-column { text-align: center; align-items: center; }
+  /* =======================================================
+   ESTILOS PARA EL SENSOR DE GESTOS AÉREOS
+   ======================================================= */
+.icon-chip.sensor-on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.icon-chip.sensor-on .chip-badge {
+  display: block;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* Destello sutil en los bordes de la pantalla al captar un gesto */
+.stage-viewport.gesture-pulse {
+  animation: gestureFlash 0.4s ease-out;
+}
+
+@keyframes gestureFlash {
+  0% { box-shadow: inset 0 0 0 4px var(--accent); }
+  100% { box-shadow: inset 0 0 0 0px transparent; }
+}
+
   .track-header { text-align: center; }
   .device-tag { align-self: center; }
   .track-actions-modern { justify-content: center; }
