@@ -1,11 +1,11 @@
 /**
- * Desk Orbit • Clock, Scaled Spotify & Panda 2.5D House Architecture
+ * Desk Orbit • Clock, Modern Spotify, Smart Calendar & Wandering Panda
  */
 
 // ==========================================================
-// 1. CONTROL DE VISTAS (CARRUSEL SIN ROTURA DE ZOOM)
+// 1. NAVEGACIÓN Y CARRUSEL
 // ==========================================================
-let currentSlide = 0; // 0 = Reloj, 1 = Spotify, 2 = Casa Panda
+let currentSlide = 0; // 0 = Reloj, 1 = Spotify, 2 = Agenda
 const track = document.getElementById('carousel-track');
 const dots = document.querySelectorAll('.dot');
 const glowBg = document.getElementById('ambient-glow');
@@ -22,7 +22,7 @@ function updateSlideView() {
   } else if (currentSlide === 1) {
     glowBg.style.opacity = '0.65';
   } else {
-    glowBg.style.opacity = '0.2';
+    glowBg.style.opacity = '0.22';
   }
 }
 
@@ -36,15 +36,15 @@ function goToSlide(index) {
   updateSlideView();
 }
 
-// Swipe táctil horizontal fluido
-let startX = 0;
+// Swipe táctil horizontal
+let touchStartX = 0;
 window.addEventListener('touchstart', (e) => {
-  startX = e.touches[0].clientX;
+  touchStartX = e.touches[0].clientX;
 });
 
 window.addEventListener('touchend', (e) => {
-  const diffX = e.changedTouches[0].clientX - startX;
-  if (Math.abs(diffX) > 50) {
+  const diffX = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(diffX) > 55) {
     rotateSlide(diffX > 0 ? -1 : 1);
   }
 });
@@ -79,19 +79,228 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // ==========================================================
-// 3. INTEGRACIÓN SPOTIFY NOW PLAYING
+// 3. AGENDA DE EVENTOS & NOTIFICACIONES INTELIGENTES
+// ==========================================================
+let agendaEvents = JSON.parse(localStorage.getItem('orbit_calendar_events') || '[]');
+const notifiedSet = new Set(); // Para no disparar la misma alerta dos veces
+
+function saveAgenda() {
+  localStorage.setItem('orbit_calendar_events', JSON.stringify(agendaEvents));
+  renderAgendaList();
+  evaluateUpcomingEvents();
+}
+
+function renderAgendaList() {
+  const container = document.getElementById('events-scroll-container');
+  const countBadge = document.getElementById('agenda-count-badge');
+  container.innerHTML = '';
+
+  countBadge.textContent = `${agendaEvents.length} eventos`;
+
+  if (agendaEvents.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-muted); font-size:0.75rem; text-align:center; padding:24px;">No hay eventos. Añade uno con el formulario o sube tu .ics.</div>';
+    return;
+  }
+
+  // Orden cronológico
+  agendaEvents.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+  const now = new Date();
+
+  agendaEvents.forEach((ev, idx) => {
+    const evDate = new Date(`${ev.date}T${ev.time}:00`);
+    const diffMinutes = Math.round((evDate - now) / 60000);
+    const isUrgent = diffMinutes >= 0 && diffMinutes <= 30;
+
+    const card = document.createElement('div');
+    card.className = `agenda-card ${isUrgent ? 'urgent' : ''}`;
+
+    let tagHtml = '';
+    if (diffMinutes < 0) tagHtml = '<span class="urgency-tag" style="color:var(--text-muted); background:rgba(255,255,255,0.08);">Pasado</span>';
+    else if (diffMinutes <= 10) tagHtml = '<span class="urgency-tag" style="color:#ef4444; background:rgba(239,68,68,0.18);">¡Ahora!</span>';
+    else if (diffMinutes <= 60) tagHtml = `<span class="urgency-tag">en ${diffMinutes}m</span>`;
+
+    card.innerHTML = `
+      <div class="agenda-info">
+        <h4>${ev.title}</h4>
+        <p>📅 ${ev.date} • ${ev.time} hs</p>
+      </div>
+      <div class="card-right">
+        ${tagHtml}
+        <button class="btn-del-agenda" onclick="deleteAgendaItem(${idx})" title="Eliminar">&times;</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function handleManualEventSubmit(e) {
+  e.preventDefault();
+  const title = document.getElementById('ev-title').value.trim();
+  const date = document.getElementById('ev-date').value;
+  const time = document.getElementById('ev-time').value;
+
+  if (!title || !date || !time) return;
+
+  agendaEvents.push({ title, date, time });
+  saveAgenda();
+
+  document.getElementById('ev-title').value = '';
+}
+
+function deleteAgendaItem(index) {
+  agendaEvents.splice(index, 1);
+  saveAgenda();
+}
+
+// Lector de archivos .ics
+function handleIcsUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    parseIcsText(evt.target.result);
+  };
+  reader.readAsText(file);
+}
+
+function parseIcsText(data) {
+  const lines = data.split(/\r\n|\n|\r/);
+  let inEvent = false, curTitle = '', curDate = '', curTime = '12:00';
+  let importedCount = 0;
+
+  lines.forEach(line => {
+    if (line.startsWith('BEGIN:VEVENT')) {
+      inEvent = true; curTitle = ''; curDate = ''; curTime = '12:00';
+    } else if (line.startsWith('END:VEVENT')) {
+      if (inEvent && curTitle && curDate) {
+        if (!agendaEvents.some(e => e.title === curTitle && e.date === curDate)) {
+          agendaEvents.push({ title: curTitle, date: curDate, time: curTime });
+          importedCount++;
+        }
+      }
+      inEvent = false;
+    } else if (inEvent) {
+      if (line.startsWith('SUMMARY:')) curTitle = line.replace('SUMMARY:', '').trim();
+      if (line.startsWith('DTSTART')) {
+        const val = line.split(':')[1] || '';
+        if (val.length >= 8) {
+          curDate = `${val.slice(0,4)}-${val.slice(4,6)}-${val.slice(6,8)}`;
+          if (val.length >= 13) curTime = `${val.slice(9,11)}:${val.slice(11,13)}`;
+        }
+      }
+    }
+  });
+
+  saveAgenda();
+  alert(`Se han importado ${importedCount} eventos desde el archivo .ics.`);
+}
+
+// Comprobador inteligente: evalúa proximidad cada 20 segundos
+function evaluateUpcomingEvents() {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  // Filtrar eventos futuros
+  const upcoming = agendaEvents
+    .map(e => ({ ...e, dt: new Date(`${e.date}T${e.time}:00`) }))
+    .filter(e => e.dt >= now)
+    .sort((a, b) => a.dt - b.dt);
+
+  // 1. Actualizar píldora del reloj principal
+  const pill = document.getElementById('quick-agenda-text');
+  if (upcoming.length > 0) {
+    const next = upcoming[0];
+    const diffMins = Math.round((next.dt - now) / 60000);
+    pill.textContent = `Próximo: ${next.title} (${next.time} hs • en ${diffMins}m)`;
+  } else {
+    pill.textContent = "Sin citas para hoy";
+  }
+
+  // 2. Disparar notificación si faltan <= 15 minutos
+  upcoming.forEach(ev => {
+    const diffMins = Math.round((ev.dt - now) / 60000);
+    const eventKey = `${ev.title}_${ev.date}_${ev.time}`;
+
+    if (diffMins >= 0 && diffMins <= 15 && !notifiedSet.has(eventKey)) {
+      notifiedSet.add(eventKey);
+      triggerEventAlert(ev, diffMins);
+    }
+  });
+}
+
+// Disparar toast en pantalla + notificación del sistema + sonido sutil
+function triggerEventAlert(ev, minsLeft) {
+  // A. Banner Toast visual
+  const toast = document.getElementById('event-toast');
+  document.getElementById('toast-title').textContent = ev.title;
+  document.getElementById('toast-meta').textContent = minsLeft === 0 ? '¡Comienza ahora mismo!' : `Empieza en ${minsLeft} minutos (${ev.time} hs)`;
+  
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 7000);
+
+  // B. Notificación nativa del móvil / navegador
+  if (Notification.permission === 'granted') {
+    new Notification(`Desk Orbit: ${ev.title}`, {
+      body: `Cita a las ${ev.time}. Faltan ${minsLeft} minutos.`,
+      icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ctext y=".9em" font-size="90"%3E🔔%3C/text%3E%3C/svg%3E'
+    });
+  }
+
+  // C. Sonido Chime de alerta generado al vuelo con Web Audio
+  playChimeTone();
+}
+
+function playChimeTone() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3); // A5
+
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.7);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.75);
+  } catch(e) {}
+}
+
+function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    alert("Este navegador no soporta notificaciones de sistema.");
+    return;
+  }
+  Notification.requestPermission().then(permission => {
+    const badge = document.getElementById('notif-badge');
+    if (permission === 'granted') {
+      badge.classList.add('active');
+      alert("¡Notificaciones activadas! Te avisaremos cuando se acerque una cita.");
+    }
+  });
+}
+
+// ==========================================================
+// 4. SPOTIFY NOW PLAYING (REAL PKCE + MODO DEMO)
 // ==========================================================
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing';
 let isPlaying = false;
-let curDuration = 0;
-let curProgress = 0;
+let curDuration = 180000;
+let curProgress = 45000;
 let progressInterval = null;
+let isDemoMode = false;
 
-function generateRandomString(length) {
+function generateRandomString(len) {
   let text = '';
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < length; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
+  for (let i = 0; i < len; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
   return text;
 }
 
@@ -154,6 +363,7 @@ async function exchangeCodeForToken(code) {
 }
 
 async function fetchNowPlaying() {
+  if (isDemoMode) return;
   const token = localStorage.getItem('spotify_access_token');
   if (!token) return;
 
@@ -227,6 +437,15 @@ function formatMs(ms) {
 }
 
 async function controlPlayback(action) {
+  if (isDemoMode) {
+    if (action === 'play' || action === 'pause') {
+      isPlaying = !isPlaying;
+      setPlayPauseButton(isPlaying);
+      document.getElementById('eq-indicator').style.display = isPlaying ? 'flex' : 'none';
+    }
+    return;
+  }
+
   const token = localStorage.getItem('spotify_access_token');
   const method = (action === 'play' || action === 'pause') ? 'PUT' : 'POST';
   await fetch(`https://api.spotify.com/v1/me/player/${action}`, {
@@ -238,6 +457,13 @@ async function controlPlayback(action) {
 
 function togglePlayPause() {
   controlPlayback(isPlaying ? 'pause' : 'play');
+}
+
+function seekSong(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const ratio = (e.clientX - rect.left) / rect.width;
+  curProgress = Math.floor(curDuration * ratio);
+  updateProgressBar();
 }
 
 function initPlayer() {
@@ -263,58 +489,64 @@ function showAuth() {
   if (savedId) document.getElementById('client-id-input').value = savedId;
 }
 
-// ==========================================================
-// 4. SIMULACIÓN DE LA CASA DEL PANDA (VISTA DE PLANO 2.5D)
-// ==========================================================
-const panda = document.getElementById('panda-avatar');
-const bubble = document.getElementById('panda-bubble');
-const stateLabel = document.getElementById('panda-state-label');
+// Modo demo para probar sin credenciales
+function activateDemoMusic() {
+  isDemoMode = true;
+  isPlaying = true;
+  initPlayer();
 
-// Coordenadas absolutas en % dentro de la planta de la casa
-const HOUSE_COORDS = {
-  bed:    { x: '24%', y: '28%', msg: 'Zzz... 😴', status: 'Durmiendo en la cama' },
-  desk:   { x: '76%', y: '28%', msg: 'Compilando... 💻', status: 'En el setup gamer' },
-  fridge: { x: '76%', y: '74%', msg: 'Comiendo bambú 🎋', status: 'Almorzando en la cocina' },
-  bath:   { x: '24%', y: '74%', msg: 'Lavándome las patas 🧼', status: 'En el cuarto de baño' },
-  hall:   { x: '50%', y: '50%', msg: 'Explorando... 🐾', status: 'Paseando por el pasillo' }
-};
-
-function movePandaTo(spotKey) {
-  const target = HOUSE_COORDS[spotKey];
-  if (!target) return;
-
-  panda.style.left = target.x;
-  panda.style.top = target.y;
-
-  bubble.textContent = target.msg;
-  stateLabel.textContent = target.status;
+  document.getElementById('track-name').textContent = "Midnight City (Desk Mix)";
+  document.getElementById('track-artist').textContent = "M83 • Synthwave Orbit";
+  document.getElementById('track-album').textContent = "Hurry Up, We're Dreaming";
+  document.getElementById('track-art').src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80";
+  glowBg.style.backgroundImage = "url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80')";
+  document.getElementById('device-label').textContent = "🔊 Desk Speakers • 85%";
+  setPlayPauseButton(true);
 }
 
-function forcePandaAction(spotKey) {
-  movePandaTo(spotKey);
+// ==========================================================
+// 5. PANDA VAGABUNDO EN EL FONDO (ANIMACIÓN & DEAMBULACIÓN)
+// ==========================================================
+const pandaWalker = document.getElementById('panda-walker');
+const pandaThought = document.getElementById('panda-thought');
+
+const PANDA_THOUGHTS = [
+  '🎋 ¡Qué rico bambú!',
+  '🐾 Ronda de mesa...',
+  '🎵 Buen ritmo',
+  '😴 ¿Toca siesta?',
+  '👀 Vigilo tus tareas',
+  '☕ Tómate un café',
+  '✨ Modo Desk Orbit'
+];
+
+let pandaCurrentX = 20;
+
+function wanderPanda() {
+  // Elegir una nueva posición aleatoria entre 6% y 88% del ancho de pantalla
+  const nextX = Math.floor(Math.random() * 80) + 8;
+  const isWalkingLeft = nextX < pandaCurrentX;
+  pandaCurrentX = nextX;
+
+  pandaWalker.classList.toggle('walk-left', isWalkingLeft);
+  pandaWalker.style.left = `${pandaCurrentX}%`;
+
+  // Cambiar pensamiento ocasionalmente
+  if (Math.random() > 0.4) {
+    pandaThought.textContent = PANDA_THOUGHTS[Math.floor(Math.random() * PANDA_THOUGHTS.length)];
+  }
 }
 
-// Ciclo de vida autónomo: cambia de habitación cada 15 segundos
-function runHouseCycle() {
-  const spots = ['bed', 'desk', 'fridge', 'bath', 'hall'];
-  setInterval(() => {
-    const hour = new Date().getHours();
-    // Prioridad nocturna para ir a la cama
-    if (hour >= 23 || hour < 7) {
-      if (Math.random() > 0.25) {
-        movePandaTo('bed');
-        return;
-      }
-    }
-    const nextSpot = spots[Math.floor(Math.random() * spots.length)];
-    movePandaTo(nextSpot);
-  }, 15000);
+function interactWithPanda() {
+  pandaThought.textContent = '🐾 ¡Hola! Sigo patrullando';
+  wanderPanda();
 }
 
-runHouseCycle();
+// Iniciar paseo del panda cada 7-12 segundos
+setInterval(wanderPanda, 9000);
 
 // ==========================================================
-// 5. INICIALIZACIÓN GENERAL & WAKE LOCK
+// 6. INICIALIZACIÓN GENERAL & WAKE LOCK
 // ==========================================================
 window.addEventListener('DOMContentLoaded', () => {
   const code = new URLSearchParams(window.location.search).get('code');
@@ -324,8 +556,16 @@ window.addEventListener('DOMContentLoaded', () => {
   else if (token) initPlayer();
   else showAuth();
 
-  // Posición inicial del panda
-  movePandaTo('hall');
+  // Fecha de hoy por defecto en el formulario
+  document.getElementById('ev-date').value = new Date().toISOString().split('T')[0];
+
+  renderAgendaList();
+  evaluateUpcomingEvents();
+  setInterval(evaluateUpcomingEvents, 20000); // Comprobar citas cada 20s
+
+  if (Notification.permission === 'granted') {
+    document.getElementById('notif-badge').classList.add('active');
+  }
 });
 
 async function keepScreenAwake() {
