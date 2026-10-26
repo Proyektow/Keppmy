@@ -34,6 +34,22 @@
       </svg>
       <span class="chip-badge" id="notif-badge"></span>
     </button>
+    <!-- Botón para activar/desactivar el sensor aéreo -->
+<button class="icon-chip" id="wave-sensor-btn" onclick="toggleAirGestureSensor()" title="Gestos en el aire">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <!-- Icono de mano / onda -->
+    <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
+    <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
+    <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+  </svg>
+  <span class="chip-badge" id="sensor-active-dot"></span>
+</button>
+
+<!-- Elementos invisibles para procesamiento de movimiento -->
+<video id="air-video" playsinline muted style="display: none;"></video>
+<canvas id="air-canvas" width="16" height="16" style="display: none;"></canvas>
+
     <button class="icon-chip" onclick="toggleFullscreen()" title="Pantalla completa inmersiva">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
@@ -201,6 +217,9 @@
     </div>
     <button class="nav-arrow" onclick="rotateSlide(1)">›</button>
   </nav>
+  <!-- Elementos invisibles para el cálculo del gesto aéreo -->
+  <video id="air-video" playsinline muted style="display: none;"></video>
+  <canvas id="air-canvas" width="16" height="16" style="display: none;"></canvas>
 
   <script src="app.js"></script>
 </body>
