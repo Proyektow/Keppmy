@@ -725,25 +725,56 @@ function triggerGestureFeedback(type) {
   }
 }
 // ==========================================================
-// CONEXIÓN AL PUENTE DEL PC (WEBSOCKET BRIDGE)
+// GESTIÓN DE IP Y CONEXIÓN AL PUENTE DEL PC
 // ==========================================================
-// Sustituye por la IP local de tu PC (ej: '192.168.1.35') si abres la PWA desde la tablet o móvil
-const PC_BRIDGE_IP = ' 192.168.1.229'; 
-const WS_URL = `ws://${PC_BRIDGE_IP}:8765`;
-
 let pcSocket = null;
 
+// Obtiene la IP guardada en el móvil, o pide una si es la primera vez
+function getBridgeIp() {
+  let ip = localStorage.getItem('desk_bridge_ip');
+  if (!ip) {
+    ip = prompt("Introduce la IP de tu PC que sale en la consola de bridge.py\n(Ejemplo: 192.168.1.35):");
+    if (ip && ip.trim() !== "") {
+      ip = ip.trim();
+      localStorage.setItem('desk_bridge_ip', ip);
+    } else {
+      ip = "localhost";
+    }
+  }
+  return ip;
+}
+
+// Función del botón de la rueda ⚙️ para cambiar la IP cuando quieras
+function configBridgeIp() {
+  const actual = localStorage.getItem('desk_bridge_ip') || '';
+  const nuevaIp = prompt("Cambiar IP del PC (mostrada en la consola de bridge.py):", actual);
+  if (nuevaIp !== null && nuevaIp.trim() !== "") {
+    localStorage.setItem('desk_bridge_ip', nuevaIp.trim());
+    if (pcSocket) pcSocket.close();
+    connectPcBridge();
+  }
+}
+
 function connectPcBridge() {
+  const ip = getBridgeIp();
+  const wsUrl = `ws://${ip}:8765`;
   const wsDot = document.getElementById('ws-dot');
   const wsText = document.getElementById('ws-status-text');
 
+  if (pcSocket) {
+    pcSocket.onclose = null;
+    pcSocket.close();
+  }
+
   try {
-    pcSocket = new WebSocket(WS_URL);
+    pcSocket = new WebSocket(wsUrl);
 
     pcSocket.onopen = () => {
-      wsDot.classList.add('connected');
-      wsText.textContent = "PC Conectado";
-      wsText.style.color = "#22c55e";
+      if (wsDot) wsDot.classList.add('connected');
+      if (wsText) {
+        wsText.textContent = "PC Conectado";
+        wsText.style.color = "#22c55e";
+      }
     };
 
     pcSocket.onmessage = (event) => {
@@ -756,10 +787,11 @@ function connectPcBridge() {
     };
 
     pcSocket.onclose = () => {
-      wsDot.classList.remove('connected');
-      wsText.textContent = "Desconectado";
-      wsText.style.color = "#ef4444";
-      // Reintentar conexión en 4 segundos
+      if (wsDot) wsDot.classList.remove('connected');
+      if (wsText) {
+        wsText.textContent = "Reconectando...";
+        wsText.style.color = "#ef4444";
+      }
       setTimeout(connectPcBridge, 4000);
     };
 
@@ -770,49 +802,3 @@ function connectPcBridge() {
     setTimeout(connectPcBridge, 4000);
   }
 }
-
-function sendDeckAction(action, payload = {}) {
-  if (navigator.vibrate) navigator.vibrate(40);
-
-  if (!pcSocket || pcSocket.readyState !== WebSocket.OPEN) {
-    alert("El script 'bridge.py' no está corriendo en tu PC o la IP no coincide.");
-    return;
-  }
-
-  pcSocket.send(JSON.stringify({ action, payload }));
-}
-
-function handleBridgeResponse(data) {
-  if (data.mic_muted !== undefined) {
-    document.getElementById('btn-deck-mic').classList.toggle('active-muted', data.mic_muted);
-  }
-  if (data.vol_muted !== undefined) {
-    document.getElementById('btn-deck-vol').classList.toggle('active-muted', data.vol_muted);
-  }
-}
-
-function updatePcTelemetry(data) {
-  // Actualizar CPU
-  document.getElementById('metric-cpu-val').textContent = `${data.cpu}%`;
-  document.getElementById('metric-cpu-bar').style.width = `${data.cpu}%`;
-
-  // Actualizar RAM
-  document.getElementById('metric-ram-val').textContent = `${data.ram}%`;
-  document.getElementById('metric-ram-bar').style.width = `${data.ram}%`;
-
-  // Actualizar Procesos
-  const container = document.getElementById('procs-table-body');
-  if (data.processes && data.processes.length > 0) {
-    container.innerHTML = data.processes.map(p => `
-      <div class="proc-row">
-        <span class="proc-name" title="${p.name}">${p.name}</span>
-        <span class="proc-mem">${p.mem}%</span>
-      </div>
-    `).join('');
-  }
-}
-
-// Iniciar conexión al cargar
-window.addEventListener('DOMContentLoaded', () => {
-  connectPcBridge();
-});
