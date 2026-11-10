@@ -728,7 +728,7 @@ function triggerGestureFeedback(type) {
 // CONEXIÓN AL PUENTE DEL PC (WEBSOCKET BRIDGE)
 // ==========================================================
 // Sustituye por la IP local de tu PC (ej: '192.168.1.35') si abres la PWA desde la tablet o móvil
-const PC_BRIDGE_IP = 'localhost'; 
+const PC_BRIDGE_IP = ' 192.168.1.229'; 
 const WS_URL = `ws://${PC_BRIDGE_IP}:8765`;
 
 let pcSocket = null;
