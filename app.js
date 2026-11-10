@@ -26,8 +26,9 @@ function updateSlideView() {
   }
 }
 
+// Cambia esto:
 function rotateSlide(direction) {
-  currentSlide = (currentSlide + direction + 3) % 3;
+  currentSlide = (currentSlide + direction + 4) % 4; // ahora son 4
   updateSlideView();
 }
 
