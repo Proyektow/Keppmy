@@ -724,4 +724,95 @@ function triggerGestureFeedback(type) {
     viewport.classList.add('gesture-pulse');
   }
 }
+// ==========================================================
+// CONEXIÓN AL PUENTE DEL PC (WEBSOCKET BRIDGE)
+// ==========================================================
+// Sustituye por la IP local de tu PC (ej: '192.168.1.35') si abres la PWA desde la tablet o móvil
+const PC_BRIDGE_IP = 'localhost'; 
+const WS_URL = `ws://${PC_BRIDGE_IP}:8765`;
 
+let pcSocket = null;
+
+function connectPcBridge() {
+  const wsDot = document.getElementById('ws-dot');
+  const wsText = document.getElementById('ws-status-text');
+
+  try {
+    pcSocket = new WebSocket(WS_URL);
+
+    pcSocket.onopen = () => {
+      wsDot.classList.add('connected');
+      wsText.textContent = "PC Conectado";
+      wsText.style.color = "#22c55e";
+    };
+
+    pcSocket.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.type === "sys_info") {
+        updatePcTelemetry(msg);
+      } else if (msg.type === "response") {
+        handleBridgeResponse(msg.data);
+      }
+    };
+
+    pcSocket.onclose = () => {
+      wsDot.classList.remove('connected');
+      wsText.textContent = "Desconectado";
+      wsText.style.color = "#ef4444";
+      // Reintentar conexión en 4 segundos
+      setTimeout(connectPcBridge, 4000);
+    };
+
+    pcSocket.onerror = () => {
+      pcSocket.close();
+    };
+  } catch (e) {
+    setTimeout(connectPcBridge, 4000);
+  }
+}
+
+function sendDeckAction(action, payload = {}) {
+  if (navigator.vibrate) navigator.vibrate(40);
+
+  if (!pcSocket || pcSocket.readyState !== WebSocket.OPEN) {
+    alert("El script 'bridge.py' no está corriendo en tu PC o la IP no coincide.");
+    return;
+  }
+
+  pcSocket.send(JSON.stringify({ action, payload }));
+}
+
+function handleBridgeResponse(data) {
+  if (data.mic_muted !== undefined) {
+    document.getElementById('btn-deck-mic').classList.toggle('active-muted', data.mic_muted);
+  }
+  if (data.vol_muted !== undefined) {
+    document.getElementById('btn-deck-vol').classList.toggle('active-muted', data.vol_muted);
+  }
+}
+
+function updatePcTelemetry(data) {
+  // Actualizar CPU
+  document.getElementById('metric-cpu-val').textContent = `${data.cpu}%`;
+  document.getElementById('metric-cpu-bar').style.width = `${data.cpu}%`;
+
+  // Actualizar RAM
+  document.getElementById('metric-ram-val').textContent = `${data.ram}%`;
+  document.getElementById('metric-ram-bar').style.width = `${data.ram}%`;
+
+  // Actualizar Procesos
+  const container = document.getElementById('procs-table-body');
+  if (data.processes && data.processes.length > 0) {
+    container.innerHTML = data.processes.map(p => `
+      <div class="proc-row">
+        <span class="proc-name" title="${p.name}">${p.name}</span>
+        <span class="proc-mem">${p.mem}%</span>
+      </div>
+    `).join('');
+  }
+}
+
+// Iniciar conexión al cargar
+window.addEventListener('DOMContentLoaded', () => {
+  connectPcBridge();
+});
