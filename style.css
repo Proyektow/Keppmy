@@ -695,3 +695,194 @@ html, body {
   .calendar-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .time-main { font-size: 19vw; }
 }
+/* =======================================================
+   CARA 4: DECKBOARD & MONITOR DE PROCESOS
+   ======================================================= */
+.slide-deckboard {
+  padding-bottom: 50px;
+}
+
+.deckboard-layout {
+  width: 100%;
+  max-width: 860px;
+  height: 100%;
+  max-height: calc(100dvh - 70px);
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+}
+
+.deck-grid-container {
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(14px);
+}
+
+.deck-top-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.deck-title { font-size: 0.9rem; font-weight: 800; color: #fff; }
+
+.bridge-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.ws-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+.ws-dot.connected {
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+/* Grilla de 4 x 3 */
+.deck-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+  flex: 1;
+}
+
+.deck-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s, border-color 0.15s;
+}
+
+.deck-btn:active {
+  transform: scale(0.92);
+  background: rgba(56, 189, 248, 0.15);
+  border-color: var(--accent);
+}
+
+.deck-btn.active-muted {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+.deck-btn .d-icon { font-size: 1.25rem; }
+.deck-btn .d-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.btn-danger-action:active {
+  background: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Panel Monitor Procesos */
+.deck-monitor-panel {
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.monitor-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-block { margin-top: 2px; }
+.metric-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.metric-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.metric-bar {
+  width: 0%;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.metric-bar.ram-color { background: #a855f7; }
+
+.processes-list-header {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.processes-table {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.proc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #090e18;
+  border: 1px solid var(--glass-border);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+}
+.proc-name {
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+.proc-mem {
+  color: #a855f7;
+  font-family: monospace;
+  font-weight: 700;
+}
+.proc-empty {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px 0;
+}
