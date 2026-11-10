@@ -178,7 +178,107 @@
           </div>
         </div>
       </section>
+<!-- ================= PÁGINA 4: DECKBOARD & MONITOR PC ================= -->
+<section class="stage-slide slide-deckboard">
+  <div class="deckboard-layout">
+    
+    <!-- Columna Izquierda: Grid de Botones Stream Deck -->
+    <div class="deck-grid-container">
+      <div class="deck-top-status">
+        <span class="deck-title">⚡ PC Deckboard</span>
+        <div class="bridge-status-indicator">
+          <span class="ws-dot" id="ws-dot"></span>
+          <span id="ws-status-text">Conectando PC...</span>
+        </div>
+      </div>
 
+      <div class="deck-buttons-grid">
+        <!-- Fila 1: Audio y Micro nativos -->
+        <button class="deck-btn" id="btn-deck-mic" onclick="sendDeckAction('toggle_mute_mic')">
+          <span class="d-icon">🎙️</span>
+          <span class="d-label">Mute Micro</span>
+        </button>
+        <button class="deck-btn" id="btn-deck-vol" onclick="sendDeckAction('toggle_mute_vol')">
+          <span class="d-icon">🔇</span>
+          <span class="d-label">Mute Audio</span>
+        </button>
+        <button class="deck-btn" onclick="sendDeckAction('vol_down')">
+          <span class="d-icon">🔉</span>
+          <span class="d-label">Vol -</span>
+        </button>
+        <button class="deck-btn" onclick="sendDeckAction('vol_up')">
+          <span class="d-icon">🔊</span>
+          <span class="d-label">Vol +</span>
+        </button>
+
+        <!-- Fila 2: Aplicaciones del PC -->
+        <button class="deck-btn" onclick="sendDeckAction('launch_app', { app: 'vscode' })">
+          <span class="d-icon">💻</span>
+          <span class="d-label">VS Code</span>
+        </button>
+        <button class="deck-btn" onclick="sendDeckAction('launch_app', { app: 'terminal' })">
+          <span class="d-icon">⌨️</span>
+          <span class="d-label">Terminal</span>
+        </button>
+        <button class="deck-btn" onclick="sendDeckAction('launch_app', { app: 'calculator' })">
+          <span class="d-icon">🧮</span>
+          <span class="d-label">Calculadora</span>
+        </button>
+        <button class="deck-btn btn-danger-action" onclick="sendDeckAction('launch_app', { app: 'lock_pc' })">
+          <span class="d-icon">🔒</span>
+          <span class="d-label">Bloquear PC</span>
+        </button>
+
+        <!-- Fila 3: Páginas Web Rápidas -->
+        <button class="deck-btn" onclick="sendDeckAction('open_web', { url: 'https://github.com' })">
+          <span class="d-icon">🐙</span>
+          <span class="d-label">GitHub</span>
+        </button>
+        <button class="deck-btn" onclick="sendDeckAction('open_web', { url: 'https://youtube.com' })">
+          <span class="d-icon">▶️</span>
+          <span class="d-label">YouTube</span>
+        </button>
+        <button class="deck-btn" onclick="sendDeckAction('open_web', { url: 'https://mail.google.com' })">
+          <span class="d-icon">✉️</span>
+          <span class="d-label">Gmail</span>
+        </button>
+        <button class="deck-btn" onclick="sendDeckAction('open_web', { url: 'https://web.whatsapp.com' })">
+          <span class="d-icon">💬</span>
+          <span class="d-label">WhatsApp</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Monitor de Procesos & Hardware en Vivo -->
+    <div class="deck-monitor-panel">
+      <div class="monitor-title">📊 Rendimiento & Procesos</div>
+      
+      <!-- Barras de CPU y RAM -->
+      <div class="metric-block">
+        <div class="metric-meta">
+          <span>CPU</span>
+          <span id="metric-cpu-val">0%</span>
+        </div>
+        <div class="metric-track"><div class="metric-bar" id="metric-cpu-bar"></div></div>
+      </div>
+
+      <div class="metric-block">
+        <div class="metric-meta">
+          <span>RAM</span>
+          <span id="metric-ram-val">0%</span>
+        </div>
+        <div class="metric-track"><div class="metric-bar ram-color" id="metric-ram-bar"></div></div>
+      </div>
+
+      <!-- Lista de procesos principales -->
+      <div class="processes-list-header">Procesos más pesados</div>
+      <div class="processes-table" id="procs-table-body">
+        <div class="proc-empty">Esperando datos del PC...</div>
+      </div>
+    </div>
+
+  </div>
+</section>
     </div>
   </div>
 
@@ -214,6 +314,7 @@
       <span class="dot active" onclick="goToSlide(0)"></span>
       <span class="dot" onclick="goToSlide(1)"></span>
       <span class="dot" onclick="goToSlide(2)"></span>
+      <span class="dot" onclick="goToSlide(3)"></span>
     </div>
     <button class="nav-arrow" onclick="rotateSlide(1)">›</button>
   </nav>
